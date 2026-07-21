@@ -52,17 +52,17 @@ class KioskController extends StateNotifier<KioskSessionState> {
   String? _activeIdempotencyKey;
 
   Future<void> _init() async {
-    final config = await _configRepo.getConfig();
-    state = state.copyWith(config: config, state: KioskState.idle);
-
-    // Wire privacy callbacks.
+    // Wire privacy callbacks + the card listener synchronously so a card tap
+    // that arrives during async config loading is never missed.
     _privacy.onInactivityTimeout = () => endSession(reason: SessionStatus.timedOut);
     _privacy.onClearImage = _wipeCapturedImage;
-
-    // Listen for physical card taps from the (mock) reader.
     _cardSub = _hw.listenForStudentCard().listen(_onCardScanned);
 
-    // Reflect queued offline sessions.
+    // Load config + queue depth WITHOUT touching the `state` FSM field — the
+    // controller already starts at `idle`, and a session may have begun before
+    // these awaits complete (do not clobber an in-progress flow).
+    final config = await _configRepo.getConfig();
+    state = state.copyWith(config: config);
     final queued = await _sessions.getQueuedSessions();
     state = state.copyWith(queuedCount: queued.length);
   }

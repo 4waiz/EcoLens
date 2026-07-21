@@ -12,6 +12,7 @@ import '../data/repositories/mock_simple_repositories.dart';
 import '../data/repositories/mock_student_repository.dart';
 import '../domain/models/accounts.dart';
 import '../domain/models/gamification_config.dart';
+import '../domain/models/hardware_status.dart';
 import '../domain/repositories/repositories.dart';
 import '../domain/services/ai_classification_service.dart';
 import '../domain/services/auth_service.dart';
@@ -108,6 +109,12 @@ final hardwareBridgeProvider = Provider<HardwareBridgeService>((ref) {
 final mockHardwareBridgeProvider = Provider<MockHardwareBridgeService?>((ref) {
   final bridge = ref.watch(hardwareBridgeProvider);
   return bridge is MockHardwareBridgeService ? bridge : null;
+});
+
+/// Live hardware status snapshots (LED state, fill levels, peripheral health).
+final hardwareStatusStreamProvider = StreamProvider<HardwareStatus>((ref) {
+  final bridge = ref.watch(hardwareBridgeProvider);
+  return bridge.statusStream;
 });
 
 // ---- AI classification ----

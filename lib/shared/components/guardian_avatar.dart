@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ class GuardianAvatar extends StatefulWidget {
     this.happy = true,
     this.glowing = false,
     this.bob = true,
+    this.showPodium,
   });
 
   final int stage;
@@ -24,6 +26,10 @@ class GuardianAvatar extends StatefulWidget {
   final bool glowing;
   final bool bob;
 
+  /// Whether to draw the grassy podium. Defaults to on for large renders and
+  /// off for small ones (badges/inline icons).
+  final bool? showPodium;
+
   @override
   State<GuardianAvatar> createState() => _GuardianAvatarState();
 }
@@ -33,6 +39,7 @@ class _GuardianAvatarState extends State<GuardianAvatar>
   late final AnimationController _bobController;
   late final AnimationController _glowController;
   late final AnimationController _blinkController;
+  Timer? _blinkTimer;
   bool _blink = false;
 
   @override
@@ -54,21 +61,24 @@ class _GuardianAvatarState extends State<GuardianAvatar>
   }
 
   void _scheduleBlink() {
-    // Blink every 3.5–5.5s.
+    // Blink every 3.5–5.5s. Uses a cancelable timer (cancelled in dispose) so
+    // no timer leaks — important for widget tests and for tearing down cleanly.
     final ms = 3500 + math.Random().nextInt(2000);
-    Future.delayed(Duration(milliseconds: ms), () async {
+    _blinkTimer = Timer(Duration(milliseconds: ms), () async {
       if (!mounted) return;
       setState(() => _blink = true);
       await _blinkController.forward(from: 0);
-      await Future<void>.delayed(const Duration(milliseconds: 90));
-      if (!mounted) return;
-      setState(() => _blink = false);
-      _scheduleBlink();
+      _blinkTimer = Timer(const Duration(milliseconds: 90), () {
+        if (!mounted) return;
+        setState(() => _blink = false);
+        _scheduleBlink();
+      });
     });
   }
 
   @override
   void dispose() {
+    _blinkTimer?.cancel();
     _bobController.dispose();
     _glowController.dispose();
     _blinkController.dispose();
@@ -96,6 +106,7 @@ class _GuardianAvatarState extends State<GuardianAvatar>
                 glow: glow,
                 happy: widget.happy,
                 blink: _blink,
+                showPodium: widget.showPodium ?? widget.size >= 140,
               ),
             ),
           ),
