@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/theme/valley_tokens.dart';
+import '../../../domain/enums/kiosk_state.dart';
 import '../../../shared/world/guardian_controller.dart';
 import '../../../shared/world/guardian_emotion.dart';
 import 'guardian_interaction.dart';
@@ -39,6 +41,30 @@ class GuardianDialogue {
 
   String get text => event.text;
   String? get headline => event.headline;
+
+  /// The bubble's mood.
+  ///
+  /// Cream and green when the Guardian is simply talking, pale blue while it is
+  /// thinking, green for a good sort, gold for a celebration, purple for a
+  /// level-up — and warm amber, never red, when something needs another go. A
+  /// touch reply is always neutral: a friendly aside should not look like a
+  /// verdict on what the student just did.
+  ValleyTheme get bubbleTheme =>
+      isTapReply ? ValleyTheme.forest : themeForEmotion(emotion);
+
+  static ValleyTheme themeForEmotion(GuardianEmotion emotion) =>
+      switch (emotion) {
+        GuardianEmotion.correct => ValleyTheme.bloom,
+        GuardianEmotion.celebrate => ValleyTheme.treasure,
+        GuardianEmotion.levelUp => ValleyTheme.arcane,
+        GuardianEmotion.tryAgain ||
+        GuardianEmotion.encourage => ValleyTheme.ember,
+        GuardianEmotion.thinking => ValleyTheme.adventure,
+        GuardianEmotion.idle ||
+        GuardianEmotion.listening ||
+        GuardianEmotion.welcome ||
+        GuardianEmotion.goodbye => ValleyTheme.forest,
+      };
 }
 
 /// Derives the current dialogue from the Guardian's expression, the live
@@ -73,6 +99,7 @@ final guardianDialogueProvider = Provider.autoDispose<GuardianDialogue>((ref) {
     category: session.lastOutcome?.correctCategory ?? session.routedCategory,
     level: session.avatar?.level,
     itemsToday: session.itemsThisSession > 0 ? session.itemsThisSession : null,
+    readingCard: session.state == KioskState.readingCard,
   );
 
   return GuardianDialogue(

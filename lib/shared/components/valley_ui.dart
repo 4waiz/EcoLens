@@ -285,7 +285,8 @@ class ValleySectionLabel extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: valleyLegible(ValleyTokens.textSectionLabel, s, 9.5) * s,
+              fontSize:
+                  valleyLegible(ValleyTokens.textSectionLabel, s, 9.5) * s,
               fontWeight: FontWeight.w900,
               letterSpacing: 0.9 * s,
               height: 1.1,
@@ -854,7 +855,8 @@ class ValleyProgressBar extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize:
-                        valleyLegible(ValleyTokens.textSectionLabel, s, 9.5) * s,
+                        valleyLegible(ValleyTokens.textSectionLabel, s, 9.5) *
+                        s,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 0.7 * s,
                     color: AppColors.inkMuted,
@@ -1212,7 +1214,9 @@ class ValleyRankRow extends StatelessWidget {
                   // Share of the leader's score — how far behind the front the
                   // house is, at a glance.
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(ValleyTokens.radiusPill),
+                    borderRadius: BorderRadius.circular(
+                      ValleyTokens.radiusPill,
+                    ),
                     child: SizedBox(
                       height: 4 * s,
                       child: Align(
@@ -1361,6 +1365,35 @@ class ValleyGamePanel extends StatelessWidget {
   /// False drops the leaf/sparkle corner art — used on the tightest layouts.
   final bool decorate;
 
+  /// The vertical space the panel's own chrome costs, in real pixels.
+  ///
+  /// A panel hands its body an UNBOUNDED height (it is a `Column`), so a caller
+  /// that needs to fit content into a fixed slot has to work out its budget
+  /// before the chrome. Exposed here so no screen has to guess with a magic
+  /// number that drifts when the header changes.
+  static double chromeHeight({
+    required double scale,
+    bool compact = false,
+    bool hasTitle = true,
+    bool hasSubtitle = false,
+  }) {
+    var chrome = 2 * (compact ? 10 : 13) * scale; // body padding
+    if (hasTitle) {
+      chrome +=
+          (compact
+                  ? ValleyTokens.headerHeightCompact
+                  : ValleyTokens.headerHeight) *
+              scale +
+          1.4 * scale; // band + its hairline
+    }
+    if (hasSubtitle) {
+      // One line of subtitle plus the gap under it.
+      chrome +=
+          (ValleyTokens.textSubtitle * 1.25 + ValleyTokens.space8) * scale;
+    }
+    return chrome;
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = context.gameScale;
@@ -1449,6 +1482,44 @@ class ValleyGamePanel extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Fits a panel's body into the height it actually has.
+///
+/// Two-stage, in this order:
+///   1. the caller has already **tiered** its content down (denser tiles, less
+///      optional microcopy) using the budget this widget is given;
+///   2. whatever is left is scaled as one composition, rather than any single
+///      label being shrunk to an unreadable size.
+///
+/// Stage 2 is a safety net, not the plan. It exists because a host can always
+/// hand a panel less room than any tier assumed — and a kiosk must never show a
+/// child a yellow overflow stripe.
+class ValleyPanelBody extends StatelessWidget {
+  const ValleyPanelBody({super.key, required this.budget, required this.child});
+
+  /// Real pixels available for the body, chrome already subtracted.
+  final double budget;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!budget.isFinite) return child;
+    return LayoutBuilder(
+      builder: (context, inner) {
+        final width = inner.maxWidth.isFinite ? inner.maxWidth : 280.0;
+        return ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: math.max(0, budget)),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.topCenter,
+            child: SizedBox(width: width, child: child),
+          ),
+        );
+      },
     );
   }
 }
@@ -1698,13 +1769,14 @@ class _ValleyActionButtonState extends State<ValleyActionButton> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: enabled
-                        ? [Color.lerp(c.accent, Colors.white, 0.16)!, c.accentDeep]
+                        ? [
+                            Color.lerp(c.accent, Colors.white, 0.16)!,
+                            c.accentDeep,
+                          ]
                         : const [Color(0xFFB6C4BB), Color(0xFF97A79D)],
                   )
                 : null,
-            color: widget.filled
-                ? null
-                : Colors.white.withValues(alpha: 0.88),
+            color: widget.filled ? null : Colors.white.withValues(alpha: 0.88),
             border: Border.all(
               color: _focus
                   ? Colors.white
@@ -1981,15 +2053,21 @@ class _ValleyDestinationCardState extends State<ValleyDestinationCard>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
-                                  widget.action,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: valleyLegible(12.5, s, 11.5) * s,
-                                    fontWeight: FontWeight.w900,
-                                    height: 1.1,
-                                    color: Colors.white,
+                                // Flexible, not bare: a long action label
+                                // ("Open Reward Shop") must ellipsise inside the
+                                // pill rather than push the arrow off the card.
+                                Flexible(
+                                  child: Text(
+                                    widget.action,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize:
+                                          valleyLegible(12.5, s, 11.5) * s,
+                                      fontWeight: FontWeight.w900,
+                                      height: 1.1,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                                 SizedBox(width: 5 * s),

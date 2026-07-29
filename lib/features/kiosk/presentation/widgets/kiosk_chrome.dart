@@ -3,11 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/valley_tokens.dart';
 import '../../../../domain/enums/kiosk_state.dart';
 import '../../../../shared/components/game_ui.dart';
 import '../../../../shared/world/guardian_controller.dart';
-import '../../../../shared/world/guardian_emotion.dart';
 import '../../../../shared/world/guardian_mascot.dart';
 import '../../../../shared/world/guardian_world.dart';
 import '../../../../shared/world/guardian_world_stage.dart';
@@ -56,10 +54,17 @@ class KioskChrome extends ConsumerWidget {
   /// States where the world is the star of the show. Every other screen is
   /// text-dense and gets a readability veil, so dark copy never has to fight
   /// the meadow behind it.
+  ///
+  /// The card-reading states earn their place here: they now put their content
+  /// on an opaque Guardian Valley panel, so they no longer need the veil — and
+  /// the veil was what turned the most magical moment in the flow (a child's
+  /// card being recognised) into a flat white wash.
   static const Set<KioskState> _heroStates = {
     KioskState.idle,
     KioskState.waitingForCard,
     KioskState.offline,
+    KioskState.readingCard,
+    KioskState.studentNotFound,
     KioskState.studentRecognised,
     KioskState.guardianEvolution,
   };
@@ -319,21 +324,9 @@ class _GuardianSpeech extends ConsumerWidget {
       text: dialogue.text,
       maxWidth: maxWidth / context.gameScale,
       animate: animate,
-      theme: dialogue.isTapReply
-          ? ValleyTheme.forest
-          : themeFor(dialogue.emotion),
+      theme: dialogue.bubbleTheme,
       onReplay: canReplay ? voice.replay : null,
       speaking: canReplay ? voice.speaking : null,
     );
   }
-
-  /// The bubble's mood per expression. Exposed for tests.
-  static ValleyTheme themeFor(GuardianEmotion emotion) => switch (emotion) {
-    GuardianEmotion.correct => ValleyTheme.bloom,
-    GuardianEmotion.celebrate => ValleyTheme.treasure,
-    GuardianEmotion.levelUp => ValleyTheme.arcane,
-    GuardianEmotion.tryAgain || GuardianEmotion.encourage => ValleyTheme.ember,
-    GuardianEmotion.thinking => ValleyTheme.adventure,
-    _ => ValleyTheme.forest,
-  };
 }

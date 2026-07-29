@@ -73,10 +73,7 @@ class GuardianSpeechEvent {
 ///     dedupe, because asking to hear it again is a new request.
 /// ---------------------------------------------------------------------------
 class GuardianVoice {
-  GuardianVoice(
-    this._service, {
-    this.settings = const GuardianVoiceSettings(),
-  });
+  GuardianVoice(this._service, {this.settings = const GuardianVoiceSettings()});
 
   final GuardianVoiceService _service;
   final GuardianVoiceSettings settings;
@@ -114,8 +111,7 @@ class GuardianVoice {
     if (_service.speaking.value && event.priority < _currentPriority) return;
 
     _currentPriority = event.priority;
-    _utterances++;
-    await _service.speak(event.spoken, settings);
+    await _speak(event.spoken);
   }
 
   /// Say the current line again. Used by the speaker control in the bubble.
@@ -123,8 +119,19 @@ class GuardianVoice {
     final line = _current;
     if (line == null || _muted) return;
     _currentPriority = line.priority;
+    await _speak(line.spoken);
+  }
+
+  /// The only path to the engine.
+  ///
+  /// Cancels first, always. "Never overlapping" is a policy guarantee made here
+  /// rather than a promise each platform implementation has to remember — and it
+  /// matters most on the web, where `speechSynthesis.speak` *queues* by default,
+  /// so a busy kiosk would otherwise build up a backlog of stale announcements.
+  Future<void> _speak(String text) async {
     _utterances++;
-    await _service.speak(line.spoken, settings);
+    await _service.stop();
+    await _service.speak(text, settings);
   }
 
   Future<void> setMuted(bool muted) async {

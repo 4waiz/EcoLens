@@ -363,6 +363,34 @@ class StudentValleyPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The panel's height budget has to be read OUTSIDE the panel: a
+    // ValleyGamePanel hands its body an unbounded main axis, so this is the last
+    // place that knows how much room there actually is.
+    return LayoutBuilder(
+      builder: (context, outer) {
+        final s = context.gameScale;
+        final chrome = ValleyGamePanel.chromeHeight(
+          scale: s,
+          hasSubtitle: true,
+        );
+        final budget = outer.maxHeight.isFinite
+            ? math.max(0.0, outer.maxHeight - chrome)
+            : double.infinity;
+        final design = budget.isFinite && s > 0 ? budget / s : double.infinity;
+
+        // Tier before scaling. A cramped kiosk gives up decoration and tile
+        // padding — never a statistic, and never the daily mission bar.
+        final tight = design < 520;
+        return _build(context, tight: tight, budget: budget);
+      },
+    );
+  }
+
+  Widget _build(
+    BuildContext context, {
+    required bool tight,
+    required double budget,
+  }) {
     final s = context.gameScale;
     final dailyProgress = config.dailyPointsCap <= 0
         ? 0.0
@@ -381,177 +409,187 @@ class StudentValleyPanel extends StatelessWidget {
         dense: true,
         semanticsLabel: 'Guardian level $level',
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // ---- Identity — FIRST NAME + class only, never the ID number ----
-          ValleyEntrance(
-            animate: animate,
-            child: Row(
-              children: [
-                _ExplorerCrest(initial: student.firstName, size: 42),
-                SizedBox(width: 10 * s),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        student.firstName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: valleyLegible(20, s, 17) * s,
-                          fontWeight: FontWeight.w900,
-                          height: 1.1,
-                          letterSpacing: -0.4 * s,
-                          color: AppColors.ink,
-                        ),
-                      ),
-                      SizedBox(height: 3 * s),
-                      // The class as a small banner rather than a caption.
-                      ValleyBadge(
-                        label:
-                            'Grade ${student.grade} · Class ${student.className}',
-                        icon: Icons.school_outlined,
-                        accent: AppColors.primary,
-                        dense: true,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 11 * s),
-
-          // ---- The loud numbers -------------------------------------------
-          ValleyEntrance(
-            index: 1,
-            animate: animate,
-            child: _tileRow(context, [
-              GameStatTile(
-                label: ProfileCopy.level,
-                value: '$level',
-                count: level,
-                accent: AppColors.xpPurple,
-                icon: Icons.military_tech_rounded,
-                hero: true,
-              ),
-              GameStatTile(
-                label: ProfileCopy.xp,
-                value: '${student.totalXp}',
-                count: student.totalXp,
-                accent: AppColors.info,
-                icon: Icons.auto_awesome,
-                hero: true,
-              ),
-            ]),
-          ),
-          SizedBox(height: 7 * s),
-          ValleyEntrance(
-            index: 2,
-            animate: animate,
-            child: _tileRow(context, [
-              GameStatTile(
-                label: ProfileCopy.coins,
-                value: '${student.availablePoints}',
-                count: student.availablePoints,
-                accent: AppColors.coinGoldDark,
-                icon: Icons.monetization_on_rounded,
-                hero: true,
-              ),
-              GameStatTile(
-                label: ProfileCopy.streak,
-                value: '${student.currentStreak}',
-                count: student.currentStreak,
-                accent: AppColors.error,
-                icon: Icons.local_fire_department_rounded,
-                hero: true,
-                footnote: student.currentStreak >= student.longestStreak &&
-                        student.currentStreak > 0
-                    ? 'best yet!'
-                    : null,
-              ),
-            ]),
-          ),
-          SizedBox(height: 9 * s),
-
-          // ---- The quieter totals -----------------------------------------
-          ValleyEntrance(
-            index: 3,
-            animate: animate,
-            child: _tileRow(context, [
-              GameStatTile(
-                label: ProfileCopy.correct,
-                value: '${student.correctRecyclingCount}',
-                count: student.correctRecyclingCount,
-                accent: AppColors.success,
-                icon: Icons.eco_rounded,
-                dense: true,
-              ),
-              GameStatTile(
-                label: ProfileCopy.learning,
-                value: '${student.incorrectRecyclingCount}',
-                count: student.incorrectRecyclingCount,
-                // Info blue, not the error red: these are lessons, not faults.
-                accent: AppColors.info,
-                icon: Icons.school_rounded,
-                dense: true,
-              ),
-            ]),
-          ),
-          SizedBox(height: 7 * s),
-          ValleyEntrance(
-            index: 4,
-            animate: animate,
-            child: _tileRow(context, [
-              GameStatTile(
-                label: ProfileCopy.bestStreak,
-                value: '${student.longestStreak}',
-                count: student.longestStreak,
-                accent: AppColors.warning,
-                icon: Icons.emoji_events_outlined,
-                dense: true,
-              ),
-              GameStatTile(
-                label: ProfileCopy.score,
-                value:
-                    '${student.correctRecyclingCount * config.pointsPerCorrect}',
-                count:
-                    student.correctRecyclingCount * config.pointsPerCorrect,
-                accent: AppColors.primary,
-                icon: Icons.stars_rounded,
-                dense: true,
-              ),
-            ]),
-          ),
-
-          SizedBox(height: 11 * s),
-          ValleyEntrance(
-            index: 5,
-            animate: animate,
-            child: ValleyProgressBar(
-              value: dailyProgress,
-              label: ProfileCopy.dailyMission,
-              trailing:
-                  '${student.dailyEarnedPoints}/${config.dailyPointsCap} pts',
-              accent: AppColors.primary,
-              height: 15,
-              animate: animate,
-              semanticsLabel: "Today's recycling progress",
-            ),
-          ),
-          if (house != null) ...[
-            SizedBox(height: 10 * s),
+      child: ValleyPanelBody(
+        budget: budget,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ---- Identity — FIRST NAME + class only, never the ID number ----
             ValleyEntrance(
-              index: 6,
               animate: animate,
-              child: _HouseStrip(house: house!),
+              child: Row(
+                children: [
+                  _ExplorerCrest(initial: student.firstName, size: 42),
+                  SizedBox(width: 10 * s),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          student.firstName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: valleyLegible(20, s, 17) * s,
+                            fontWeight: FontWeight.w900,
+                            height: 1.1,
+                            letterSpacing: -0.4 * s,
+                            color: AppColors.ink,
+                          ),
+                        ),
+                        SizedBox(height: 3 * s),
+                        // The class as a small banner rather than a caption.
+                        ValleyBadge(
+                          label:
+                              'Grade ${student.grade} · Class ${student.className}',
+                          icon: Icons.school_outlined,
+                          accent: AppColors.primary,
+                          dense: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
+            SizedBox(height: 11 * s),
+
+            // ---- The loud numbers -------------------------------------------
+            ValleyEntrance(
+              index: 1,
+              animate: animate,
+              child: _tileRow(context, [
+                GameStatTile(
+                  label: ProfileCopy.level,
+                  value: '$level',
+                  count: level,
+                  accent: AppColors.xpPurple,
+                  icon: Icons.military_tech_rounded,
+                  hero: !tight,
+                  dense: tight,
+                ),
+                GameStatTile(
+                  label: ProfileCopy.xp,
+                  value: '${student.totalXp}',
+                  count: student.totalXp,
+                  accent: AppColors.info,
+                  icon: Icons.auto_awesome,
+                  hero: !tight,
+                  dense: tight,
+                ),
+              ]),
+            ),
+            SizedBox(height: 7 * s),
+            ValleyEntrance(
+              index: 2,
+              animate: animate,
+              child: _tileRow(context, [
+                GameStatTile(
+                  label: ProfileCopy.coins,
+                  value: '${student.availablePoints}',
+                  count: student.availablePoints,
+                  accent: AppColors.coinGoldDark,
+                  icon: Icons.monetization_on_rounded,
+                  hero: !tight,
+                  dense: tight,
+                ),
+                GameStatTile(
+                  label: ProfileCopy.streak,
+                  value: '${student.currentStreak}',
+                  count: student.currentStreak,
+                  accent: AppColors.error,
+                  icon: Icons.local_fire_department_rounded,
+                  hero: !tight,
+                  dense: tight,
+                  // Decoration, so it is the first thing a cramped kiosk drops.
+                  footnote:
+                      !tight &&
+                          student.currentStreak >= student.longestStreak &&
+                          student.currentStreak > 0
+                      ? 'best yet!'
+                      : null,
+                ),
+              ]),
+            ),
+            SizedBox(height: 9 * s),
+
+            // ---- The quieter totals -----------------------------------------
+            ValleyEntrance(
+              index: 3,
+              animate: animate,
+              child: _tileRow(context, [
+                GameStatTile(
+                  label: ProfileCopy.correct,
+                  value: '${student.correctRecyclingCount}',
+                  count: student.correctRecyclingCount,
+                  accent: AppColors.success,
+                  icon: Icons.eco_rounded,
+                  dense: true,
+                ),
+                GameStatTile(
+                  label: ProfileCopy.learning,
+                  value: '${student.incorrectRecyclingCount}',
+                  count: student.incorrectRecyclingCount,
+                  // Info blue, not the error red: these are lessons, not faults.
+                  accent: AppColors.info,
+                  icon: Icons.school_rounded,
+                  dense: true,
+                ),
+              ]),
+            ),
+            SizedBox(height: 7 * s),
+            ValleyEntrance(
+              index: 4,
+              animate: animate,
+              child: _tileRow(context, [
+                GameStatTile(
+                  label: ProfileCopy.bestStreak,
+                  value: '${student.longestStreak}',
+                  count: student.longestStreak,
+                  accent: AppColors.warning,
+                  icon: Icons.emoji_events_outlined,
+                  dense: true,
+                ),
+                GameStatTile(
+                  label: ProfileCopy.score,
+                  value:
+                      '${student.correctRecyclingCount * config.pointsPerCorrect}',
+                  count:
+                      student.correctRecyclingCount * config.pointsPerCorrect,
+                  accent: AppColors.primary,
+                  icon: Icons.stars_rounded,
+                  dense: true,
+                ),
+              ]),
+            ),
+
+            SizedBox(height: 11 * s),
+            ValleyEntrance(
+              index: 5,
+              animate: animate,
+              child: ValleyProgressBar(
+                value: dailyProgress,
+                label: ProfileCopy.dailyMission,
+                trailing:
+                    '${student.dailyEarnedPoints}/${config.dailyPointsCap} pts',
+                accent: AppColors.primary,
+                height: 15,
+                animate: animate,
+                semanticsLabel: "Today's recycling progress",
+              ),
+            ),
+            if (house != null) ...[
+              SizedBox(height: 10 * s),
+              ValleyEntrance(
+                index: 6,
+                animate: animate,
+                child: _HouseStrip(house: house!),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -783,6 +821,29 @@ class ValleyImpactPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Same rule as the profile panel: read the height budget before the panel
+    // chrome, tier the decoration, then let the safety net catch the remainder.
+    return LayoutBuilder(
+      builder: (context, outer) {
+        final s = context.gameScale;
+        final chrome = ValleyGamePanel.chromeHeight(
+          scale: s,
+          hasSubtitle: true,
+        );
+        final budget = outer.maxHeight.isFinite
+            ? math.max(0.0, outer.maxHeight - chrome)
+            : double.infinity;
+        final design = budget.isFinite && s > 0 ? budget / s : double.infinity;
+        return _build(context, tight: design < 470, budget: budget);
+      },
+    );
+  }
+
+  Widget _build(
+    BuildContext context, {
+    required bool tight,
+    required double budget,
+  }) {
     final s = context.gameScale;
     final leader = rankings.isEmpty
         ? 1
@@ -793,143 +854,148 @@ class ValleyImpactPanel extends StatelessWidget {
       title: ImpactCopy.panelTitle,
       subtitle: ImpactCopy.panelSubtitle,
       icon: Icons.public,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ValleyEntrance(
-            animate: animate,
-            child: ImpactRow(
-              icon: Icons.recycling,
-              value: '$itemsRecycled',
-              count: itemsRecycled,
-              caption: ImpactCopy.itemsRecycled,
-              accent: AppColors.primary,
-              cheer: 'saved from the bin',
-            ),
-          ),
-          SizedBox(height: 8 * s),
-          ValleyEntrance(
-            index: 1,
-            animate: animate,
-            child: ImpactRow(
-              icon: Icons.cloud_outlined,
-              value: '$co2SavedKg kg',
-              count: co2SavedKg,
-              suffix: ' kg',
-              caption: ImpactCopy.co2Saved,
-              accent: AppColors.info,
-              cheer: 'cleaner air for the valley',
-            ),
-          ),
-          SizedBox(height: 8 * s),
-          ValleyEntrance(
-            index: 2,
-            animate: animate,
-            child: ImpactRow(
-              icon: Icons.workspace_premium_rounded,
-              value: '$recycledRightPercent%',
-              count: recycledRightPercent,
-              suffix: '%',
-              caption: ImpactCopy.recycledRight,
-              accent: AppColors.coinGoldDark,
-              cheer: 'sorted into the right portal',
-            ),
-          ),
-          SizedBox(height: 12 * s),
-
-          // ---- The shared goal, as a journey ------------------------------
-          ValleyEntrance(
-            index: 3,
-            animate: animate,
-            child: ValleyQuestTrail(
-              value: goalProgress,
-              label: goalLabel,
-              caption: goalCaption,
-              accent: AppColors.success,
-              animate: animate,
-            ),
-          ),
-
-          if (studentContribution != null) ...[
-            SizedBox(height: 10 * s),
+      child: ValleyPanelBody(
+        budget: budget,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
             ValleyEntrance(
-              index: 4,
               animate: animate,
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10 * s,
-                  vertical: 8 * s,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primary.withValues(alpha: 0.18),
-                      AppColors.primary.withValues(alpha: 0.06),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(
-                    ValleyTokens.radiusTile * s,
-                  ),
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.38),
-                    width: ValleyTokens.borderTile * s,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    ValleyIconMedallion(
-                      icon: Icons.favorite_rounded,
-                      accent: AppColors.primary,
-                      size: 24,
-                      glow: false,
-                    ),
-                    SizedBox(width: 8 * s),
-                    Expanded(
-                      child: Text(
-                        studentContribution!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: valleyLegible(11.5, s, 10.5) * s,
-                          fontWeight: FontWeight.w800,
-                          height: 1.25,
-                          color: AppColors.primaryDark,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              child: ImpactRow(
+                icon: Icons.recycling,
+                value: '$itemsRecycled',
+                count: itemsRecycled,
+                caption: ImpactCopy.itemsRecycled,
+                accent: AppColors.primary,
+                // Encouragement is decoration: the first thing to go when the
+                // panel is short, before any real number.
+                cheer: tight ? null : 'saved from the bin',
               ),
             ),
-          ],
-
-          if (rankings.isNotEmpty) ...[
-            SizedBox(height: 12 * s),
-            ValleySectionLabel(
-              label: ImpactCopy.leaderboard,
-              accent: AppColors.coinGoldDark,
-              icon: Icons.emoji_events_rounded,
+            SizedBox(height: 8 * s),
+            ValleyEntrance(
+              index: 1,
+              animate: animate,
+              child: ImpactRow(
+                icon: Icons.cloud_outlined,
+                value: '$co2SavedKg kg',
+                count: co2SavedKg,
+                suffix: ' kg',
+                caption: ImpactCopy.co2Saved,
+                accent: AppColors.info,
+                cheer: tight ? null : 'cleaner air for the valley',
+              ),
             ),
-            SizedBox(height: 6 * s),
-            for (var i = 0; i < rankings.length; i++) ...[
-              if (i > 0) SizedBox(height: 5 * s),
-              ValleyEntrance(
-                index: 5 + i,
+            SizedBox(height: 8 * s),
+            ValleyEntrance(
+              index: 2,
+              animate: animate,
+              child: ImpactRow(
+                icon: Icons.workspace_premium_rounded,
+                value: '$recycledRightPercent%',
+                count: recycledRightPercent,
+                suffix: '%',
+                caption: ImpactCopy.recycledRight,
+                accent: AppColors.coinGoldDark,
+                cheer: tight ? null : 'sorted into the right portal',
+              ),
+            ),
+            SizedBox(height: 12 * s),
+
+            // ---- The shared goal, as a journey ------------------------------
+            ValleyEntrance(
+              index: 3,
+              animate: animate,
+              child: ValleyQuestTrail(
+                value: goalProgress,
+                label: goalLabel,
+                caption: goalCaption,
+                accent: AppColors.success,
                 animate: animate,
-                child: ValleyRankRow(
-                  rank: i + 1,
-                  name: rankings[i].name,
-                  points: rankings[i].points,
-                  colour: rankings[i].colour,
-                  leaderPoints: leader,
-                  isMine: rankings[i].isMine,
-                  animate: animate,
+              ),
+            ),
+
+            if (studentContribution != null) ...[
+              SizedBox(height: 10 * s),
+              ValleyEntrance(
+                index: 4,
+                animate: animate,
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10 * s,
+                    vertical: 8 * s,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.18),
+                        AppColors.primary.withValues(alpha: 0.06),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(
+                      ValleyTokens.radiusTile * s,
+                    ),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.38),
+                      width: ValleyTokens.borderTile * s,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      ValleyIconMedallion(
+                        icon: Icons.favorite_rounded,
+                        accent: AppColors.primary,
+                        size: 24,
+                        glow: false,
+                      ),
+                      SizedBox(width: 8 * s),
+                      Expanded(
+                        child: Text(
+                          studentContribution!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: valleyLegible(11.5, s, 10.5) * s,
+                            fontWeight: FontWeight.w800,
+                            height: 1.25,
+                            color: AppColors.primaryDark,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
+
+            if (rankings.isNotEmpty) ...[
+              SizedBox(height: 12 * s),
+              ValleySectionLabel(
+                label: ImpactCopy.leaderboard,
+                accent: AppColors.coinGoldDark,
+                icon: Icons.emoji_events_rounded,
+              ),
+              SizedBox(height: 6 * s),
+              for (var i = 0; i < rankings.length; i++) ...[
+                if (i > 0) SizedBox(height: 5 * s),
+                ValleyEntrance(
+                  index: 5 + i,
+                  animate: animate,
+                  child: ValleyRankRow(
+                    rank: i + 1,
+                    name: rankings[i].name,
+                    points: rankings[i].points,
+                    colour: rankings[i].colour,
+                    leaderPoints: leader,
+                    isMine: rankings[i].isMine,
+                    animate: animate,
+                  ),
+                ),
+              ],
+            ],
           ],
-        ],
+        ),
       ),
     );
   }

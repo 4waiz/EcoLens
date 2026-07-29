@@ -35,6 +35,7 @@ abstract final class GuardianSpeech {
     WasteCategory? category,
     int? level,
     int? itemsToday,
+    bool readingCard = false,
   }) {
     final name = _safeName(firstName);
     final guardian = guardianName ?? 'Sprout';
@@ -64,9 +65,16 @@ abstract final class GuardianSpeech {
               )
             : const GuardianLine(text: 'Show me the item you want to recycle.'),
 
-      GuardianEmotion.thinking => const GuardianLine(
-        text: 'Let me check that item…',
-      ),
+      // "Thinking" covers two different jobs: reading a card and classifying an
+      // item. Without the split, a child tapping their card is told the
+      // Guardian is checking an item they have not shown it yet.
+      GuardianEmotion.thinking =>
+        readingCard
+            ? GuardianLine(
+                headline: '$guardian is finding your profile…',
+                text: 'Keep your card near the glowing reader.',
+              )
+            : const GuardianLine(text: 'Let me check that item…'),
 
       GuardianEmotion.welcome => GuardianLine(
         headline: name == null ? 'Welcome back!' : 'Welcome back, $name!',

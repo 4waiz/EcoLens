@@ -109,7 +109,8 @@ const Set<KioskState> kGuardianTapStates = {
 };
 
 /// Whether the Guardian will react to a touch in [state].
-bool guardianAcceptsTapIn(KioskState state) => kGuardianTapStates.contains(state);
+bool guardianAcceptsTapIn(KioskState state) =>
+    kGuardianTapStates.contains(state);
 
 class GuardianInteractionController
     extends StateNotifier<GuardianInteractionState> {
@@ -190,10 +191,7 @@ class GuardianInteractionController
     _expiry?.cancel();
     _expiry = null;
     if (!mounted || state.reply == null) return;
-    state = GuardianInteractionState(
-      taps: state.taps,
-      ignored: state.ignored,
-    );
+    state = GuardianInteractionState(taps: state.taps, ignored: state.ignored);
   }
 
   /// Between students: forget the counters, the cooldown and the reply.

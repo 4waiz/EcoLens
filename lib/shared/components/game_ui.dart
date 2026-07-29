@@ -169,7 +169,9 @@ class HudPill extends StatelessWidget {
                   ],
                 )
               : null,
-          color: filled ? null : const Color(0xFFFBFEF8).withValues(alpha: 0.94),
+          color: filled
+              ? null
+              : const Color(0xFFFBFEF8).withValues(alpha: 0.94),
           borderRadius: BorderRadius.circular(ValleyTokens.radiusPill),
           border: Border.all(
             color: filled
@@ -428,8 +430,8 @@ class _GuardianSpeechBubbleState extends State<GuardianSpeechBubble>
   @override
   Widget build(BuildContext context) {
     final s = context.gameScale;
-    final c = widget.theme?.colours ??
-        ValleyThemeColours.fromAccent(widget.accent);
+    final c =
+        widget.theme?.colours ?? ValleyThemeColours.fromAccent(widget.accent);
     final portrait = 34.0 * s;
 
     final message = Column(
@@ -458,21 +460,14 @@ class _GuardianSpeechBubbleState extends State<GuardianSpeechBubble>
             color: AppColors.ink,
           ),
         ),
-        if (widget.footer != null) ...[
-          SizedBox(height: 9 * s),
-          widget.footer!,
-        ],
+        if (widget.footer != null) ...[SizedBox(height: 9 * s), widget.footer!],
       ],
     );
 
     final content = ConstrainedBox(
       constraints: BoxConstraints(maxWidth: widget.maxWidth * s),
       child: CustomPaint(
-        painter: _BubblePainter(
-          tail: widget.tail,
-          colours: c,
-          scale: s,
-        ),
+        painter: _BubblePainter(tail: widget.tail, colours: c, scale: s),
         child: Padding(
           padding: EdgeInsets.fromLTRB(
             widget.tail == SpeechTail.left ? 24 * s : 15 * s,
@@ -730,9 +725,7 @@ class _BubbleSpeakerButton extends StatelessWidget {
               width: d,
               height: d,
               child: Icon(
-                isSpeaking
-                    ? Icons.graphic_eq_rounded
-                    : Icons.volume_up_rounded,
+                isSpeaking ? Icons.graphic_eq_rounded : Icons.volume_up_rounded,
                 size: d * 0.46,
                 color: colours.accentDeep,
               ),
@@ -956,17 +949,33 @@ class _WorldPortalButtonState extends State<WorldPortalButton>
   );
 
   @override
+  void initState() {
+    super.initState();
+    // A portal can be BUILT already showing feedback (a rebuilt subtree, a
+    // resumed session, a screenshot test). Without this the celebration would
+    // only ever play on a transition, so the reward would silently never appear.
+    _playFeedback(widget.effectiveState);
+  }
+
+  @override
   void didUpdateWidget(covariant WorldPortalButton old) {
     super.didUpdateWidget(old);
     final now = widget.effectiveState;
     if (now == old.effectiveState) return;
-    if (now == PortalState.correct) {
-      widget.animate ? _cheer.forward(from: 0) : _cheer.value = 1;
-    } else if (now == PortalState.incorrect) {
-      widget.animate ? _nudge.forward(from: 0) : _nudge.value = 1;
-    } else {
-      _cheer.value = 0;
-      _nudge.value = 0;
+    _playFeedback(now);
+  }
+
+  void _playFeedback(PortalState state) {
+    switch (state) {
+      case PortalState.correct:
+        widget.animate ? _cheer.forward(from: 0) : _cheer.value = 0.5;
+      case PortalState.incorrect:
+        widget.animate ? _nudge.forward(from: 0) : _nudge.value = 1;
+      case PortalState.idle:
+      case PortalState.selected:
+      case PortalState.locked:
+        _cheer.value = 0;
+        _nudge.value = 0;
     }
   }
 
@@ -982,7 +991,11 @@ class _WorldPortalButtonState extends State<WorldPortalButton>
   Color get _colour => switch (widget.effectiveState) {
     PortalState.correct => AppColors.success,
     PortalState.incorrect => const Color(0xFFE8935A),
-    PortalState.locked => Color.lerp(widget.colour, const Color(0xFF9AA79E), 0.7)!,
+    PortalState.locked => Color.lerp(
+      widget.colour,
+      const Color(0xFF9AA79E),
+      0.7,
+    )!,
     _ => widget.colour,
   };
 
@@ -1086,9 +1099,7 @@ class _WorldPortalButtonState extends State<WorldPortalButton>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: colour.withValues(
-                        alpha: emphasised ? 0.45 : 0.22,
-                      ),
+                      color: colour.withValues(alpha: emphasised ? 0.45 : 0.22),
                       blurRadius: (emphasised ? 22 : 12) * s,
                       offset: Offset(0, (emphasised ? 10 : 5) * s),
                     ),
@@ -1122,8 +1133,7 @@ class _WorldPortalButtonState extends State<WorldPortalButton>
                                           painter: _PortalRingPainter(
                                             colour: colour,
                                             glow: emphasised ? 1 : 0.55,
-                                            cheer:
-                                                st == PortalState.correct
+                                            cheer: st == PortalState.correct
                                                 ? _cheer.value
                                                 : 0,
                                           ),
@@ -1275,16 +1285,17 @@ class _PortalRingPainter extends CustomPainter {
     canvas.drawOval(
       Rect.fromCenter(center: c, width: rx * 2, height: ry * 2),
       Paint()
-        ..shader = RadialGradient(
-          colors: [
-            colour.withValues(alpha: 0.34 * glow),
-            colour.withValues(alpha: 0.06 * glow),
-            colour.withValues(alpha: 0),
-          ],
-          stops: const [0, 0.62, 1],
-        ).createShader(
-          Rect.fromCenter(center: c, width: rx * 2, height: ry * 2),
-        ),
+        ..shader =
+            RadialGradient(
+              colors: [
+                colour.withValues(alpha: 0.34 * glow),
+                colour.withValues(alpha: 0.06 * glow),
+                colour.withValues(alpha: 0),
+              ],
+              stops: const [0, 0.62, 1],
+            ).createShader(
+              Rect.fromCenter(center: c, width: rx * 2, height: ry * 2),
+            ),
     );
 
     // Its rim.

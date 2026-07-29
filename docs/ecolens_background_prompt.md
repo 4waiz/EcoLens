@@ -191,7 +191,7 @@ Bundled (`assets/`, listed in `pubspec.yaml`):
 | Asset | Size | Notes |
 |---|---|---|
 | `backgrounds/guardian_valley_base.webp` | 212 KB | Opaque. The valley itself. |
-| `backgrounds/guardian_valley_clouds.png` | 251 KB | Transparent. Pure white clouds. **PNG, not WebP** — see below. |
+| `backgrounds/guardian_valley_clouds.png` | 172 KB | Transparent. Pure white clouds. **PNG, not WebP** — see below. |
 | `backgrounds/guardian_valley_water.webp` | 104 KB | Transparent. Stream shimmer, fade baked in. |
 | `backgrounds/guardian_valley_particles.webp` | 89 KB | Transparent. Soft light and dust. |
 | `backgrounds/guardian_valley_foreground.webp` | 74 KB | Transparent. Grass and flowers. |
@@ -226,9 +226,18 @@ a good trade for the one plate where it matters.
 
 1. Drop a new master at `art_source/backgrounds/guardian_valley_clouds.png`.
    Expected size **1376 × 768**; anything else is resized with LANCZOS.
-2. Run `python tool/prepare_art_assets.py`. It reconstructs a real alpha channel
-   from the baked-in transparency checkerboard (`mode="white"`) and writes
-   `assets/backgrounds/guardian_valley_clouds.png`.
+2. Run **`python tool/rebuild_cloud_plate.py`** (or
+   `python tool/prepare_art_assets.py` to rebuild every plate). It reconstructs a
+   real alpha channel from the baked-in transparency checkerboard (`mode="white"`)
+   and writes `assets/backgrounds/guardian_valley_clouds.png`.
+
+   **Do not hand-export this plate from an image editor.** The failure is
+   subtle and ships silently: clearing only the *background* checker leaves the
+   checker's grey inside the semi-transparent cloud bodies, and because those
+   clouds are drawn at partial opacity over a flat sky, the grid is plainly
+   visible in the finished app. `rebuild_cloud_plate.py` prints
+   `% of visible pixels not white` before and after — **it must be 0.0% after.**
+   Anything above that is residual matte.
 3. `pubspec.yaml` declares the whole `assets/backgrounds/` directory, so no
    manifest change is needed — but `flutter pub get` must be re-run so the new
    file lands in `AssetManifest.json`.

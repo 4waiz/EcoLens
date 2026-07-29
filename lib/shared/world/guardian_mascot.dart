@@ -160,9 +160,7 @@ class _GuardianMascotState extends State<GuardianMascot>
     final profile = _tapProfile;
     if (profile == null) return;
     _calmTap = !widget.animate;
-    _tap.duration = _calmTap
-        ? GuardianMascot.calmTapPulse
-        : profile.duration;
+    _tap.duration = _calmTap ? GuardianMascot.calmTapPulse : profile.duration;
     _tap.forward(from: 0);
   }
 
@@ -172,8 +170,29 @@ class _GuardianMascotState extends State<GuardianMascot>
     _precache(widget.emotion.assetPath);
   }
 
+  /// The decode height used for the frame on screen.
+  ///
+  /// Decoding at the display size rather than the 1024² master keeps the image
+  /// cache small on a low-memory tablet.
+  int _decodeHeight() =>
+      (widget.height * MediaQuery.devicePixelRatioOf(context)).round().clamp(
+        128,
+        1024,
+      );
+
   void _precache(String path) {
-    precacheImage(AssetImage(path), context, onError: (_, _) {});
+    // Precache at EXACTLY the size the frame is displayed at.
+    //
+    // A `ResizeImage` is a different cache key from the bare `AssetImage`, so
+    // precaching the unscaled provider warmed an entry the widget never asks
+    // for: every expression change then paid for a fresh decode, and the first
+    // paint after a swap could show an empty box. Matching the keys is what
+    // makes the precache actually do its job.
+    precacheImage(
+      ResizeImage.resizeIfNeeded(null, _decodeHeight(), AssetImage(path)),
+      context,
+      onError: (_, _) {},
+    );
   }
 
   @override
@@ -225,12 +244,8 @@ class _GuardianMascotState extends State<GuardianMascot>
       filterQuality: FilterQuality.medium,
       isAntiAlias: true,
       excludeFromSemantics: true,
-      // Decoding at the display size rather than the 1024² master keeps the
-      // image cache small on a low-memory tablet.
-      cacheHeight: (h * MediaQuery.devicePixelRatioOf(context)).round().clamp(
-        128,
-        1024,
-      ),
+      // Must match _precache exactly, or the warmed entry is never used.
+      cacheHeight: _decodeHeight(),
       errorBuilder: (context, error, stack) {
         if (_broken.add(emotion)) {
           debugPrint(
