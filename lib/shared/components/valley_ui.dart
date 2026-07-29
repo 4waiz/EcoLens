@@ -1488,15 +1488,17 @@ class ValleyGamePanel extends StatelessWidget {
 
 /// Fits a panel's body into the height it actually has.
 ///
-/// Two-stage, in this order:
-///   1. the caller has already **tiered** its content down (denser tiles, less
-///      optional microcopy) using the budget this widget is given;
-///   2. whatever is left is scaled as one composition, rather than any single
-///      label being shrunk to an unreadable size.
+/// Two stages, in this order:
+///   1. the caller **tiers** its content down using the budget this widget is
+///      given — denser tiles, tighter gaps, less optional microcopy. This is the
+///      plan, and it is what should happen at every supported size;
+///   2. anything still over budget scrolls.
 ///
-/// Stage 2 is a safety net, not the plan. It exists because a host can always
-/// hand a panel less room than any tier assumed — and a kiosk must never show a
-/// child a yellow overflow stripe.
+/// Stage 2 is deliberately a scroll and NOT a `FittedBox`. Scaling the whole
+/// composition down looks like a tidy safety net and is a trap: it silences the
+/// overflow assertion, so the tests go green while the panel renders content too
+/// small to read — and once the ratio gets bad enough, effectively not at all.
+/// A scroll keeps every value at its designed size and tells the truth.
 class ValleyPanelBody extends StatelessWidget {
   const ValleyPanelBody({super.key, required this.budget, required this.child});
 
@@ -1508,18 +1510,15 @@ class ValleyPanelBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!budget.isFinite) return child;
-    return LayoutBuilder(
-      builder: (context, inner) {
-        final width = inner.maxWidth.isFinite ? inner.maxWidth : 280.0;
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: math.max(0, budget)),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.topCenter,
-            child: SizedBox(width: width, child: child),
-          ),
-        );
-      },
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: math.max(0, budget)),
+      child: SingleChildScrollView(
+        // A kiosk panel should never need to scroll — the tiers above are sized
+        // so it does not. This exists so a host that hands the panel less room
+        // than any tier assumed degrades to "scrollable" instead of "clipped".
+        physics: const ClampingScrollPhysics(),
+        child: child,
+      ),
     );
   }
 }

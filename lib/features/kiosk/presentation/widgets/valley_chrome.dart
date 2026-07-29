@@ -378,10 +378,11 @@ class StudentValleyPanel extends StatelessWidget {
             : double.infinity;
         final design = budget.isFinite && s > 0 ? budget / s : double.infinity;
 
-        // Tier before scaling. A cramped kiosk gives up decoration and tile
-        // padding — never a statistic, and never the daily mission bar.
-        final tight = design < 520;
-        return _build(context, tight: tight, budget: budget);
+        // Tier so the content genuinely FITS. A cramped kiosk gives up
+        // decoration, tile padding and vertical rhythm — never a statistic, and
+        // never the daily mission bar. Measured against the real budget at
+        // 1024x600, which is the tightest supported surface.
+        return _build(context, tight: design < 640, budget: budget);
       },
     );
   }
@@ -392,6 +393,9 @@ class StudentValleyPanel extends StatelessWidget {
     required double budget,
   }) {
     final s = context.gameScale;
+    // Vertical rhythm collapses before anything else does.
+    final gap = (tight ? 5.0 : 7.0) * s;
+    final bigGap = (tight ? 7.0 : 11.0) * s;
     final dailyProgress = config.dailyPointsCap <= 0
         ? 0.0
         : student.dailyEarnedPoints / config.dailyPointsCap;
@@ -454,7 +458,7 @@ class StudentValleyPanel extends StatelessWidget {
                 ],
               ),
             ),
-            SizedBox(height: 11 * s),
+            SizedBox(height: bigGap),
 
             // ---- The loud numbers -------------------------------------------
             ValleyEntrance(
@@ -481,7 +485,7 @@ class StudentValleyPanel extends StatelessWidget {
                 ),
               ]),
             ),
-            SizedBox(height: 7 * s),
+            SizedBox(height: gap),
             ValleyEntrance(
               index: 2,
               animate: animate,
@@ -513,7 +517,7 @@ class StudentValleyPanel extends StatelessWidget {
                 ),
               ]),
             ),
-            SizedBox(height: 9 * s),
+            SizedBox(height: bigGap),
 
             // ---- The quieter totals -----------------------------------------
             ValleyEntrance(
@@ -539,7 +543,7 @@ class StudentValleyPanel extends StatelessWidget {
                 ),
               ]),
             ),
-            SizedBox(height: 7 * s),
+            SizedBox(height: gap),
             ValleyEntrance(
               index: 4,
               animate: animate,
@@ -565,7 +569,7 @@ class StudentValleyPanel extends StatelessWidget {
               ]),
             ),
 
-            SizedBox(height: 11 * s),
+            SizedBox(height: bigGap),
             ValleyEntrance(
               index: 5,
               animate: animate,
@@ -581,7 +585,7 @@ class StudentValleyPanel extends StatelessWidget {
               ),
             ),
             if (house != null) ...[
-              SizedBox(height: 10 * s),
+              SizedBox(height: bigGap),
               ValleyEntrance(
                 index: 6,
                 animate: animate,
@@ -834,7 +838,7 @@ class ValleyImpactPanel extends StatelessWidget {
             ? math.max(0.0, outer.maxHeight - chrome)
             : double.infinity;
         final design = budget.isFinite && s > 0 ? budget / s : double.infinity;
-        return _build(context, tight: design < 470, budget: budget);
+        return _build(context, tight: design < 640, budget: budget);
       },
     );
   }
@@ -845,6 +849,8 @@ class ValleyImpactPanel extends StatelessWidget {
     required double budget,
   }) {
     final s = context.gameScale;
+    final gap = (tight ? 5.0 : 8.0) * s;
+    final bigGap = (tight ? 8.0 : 12.0) * s;
     final leader = rankings.isEmpty
         ? 1
         : rankings.map((r) => r.points).reduce(math.max);
@@ -873,7 +879,7 @@ class ValleyImpactPanel extends StatelessWidget {
                 cheer: tight ? null : 'saved from the bin',
               ),
             ),
-            SizedBox(height: 8 * s),
+            SizedBox(height: gap),
             ValleyEntrance(
               index: 1,
               animate: animate,
@@ -887,7 +893,7 @@ class ValleyImpactPanel extends StatelessWidget {
                 cheer: tight ? null : 'cleaner air for the valley',
               ),
             ),
-            SizedBox(height: 8 * s),
+            SizedBox(height: gap),
             ValleyEntrance(
               index: 2,
               animate: animate,
@@ -901,7 +907,7 @@ class ValleyImpactPanel extends StatelessWidget {
                 cheer: tight ? null : 'sorted into the right portal',
               ),
             ),
-            SizedBox(height: 12 * s),
+            SizedBox(height: bigGap),
 
             // ---- The shared goal, as a journey ------------------------------
             ValleyEntrance(
@@ -917,7 +923,7 @@ class ValleyImpactPanel extends StatelessWidget {
             ),
 
             if (studentContribution != null) ...[
-              SizedBox(height: 10 * s),
+              SizedBox(height: bigGap),
               ValleyEntrance(
                 index: 4,
                 animate: animate,
@@ -970,7 +976,7 @@ class ValleyImpactPanel extends StatelessWidget {
             ],
 
             if (rankings.isNotEmpty) ...[
-              SizedBox(height: 12 * s),
+              SizedBox(height: bigGap),
               ValleySectionLabel(
                 label: ImpactCopy.leaderboard,
                 accent: AppColors.coinGoldDark,

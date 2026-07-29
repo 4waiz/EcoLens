@@ -85,27 +85,101 @@ Full reference: [docs/guardian_emotion_system.md](docs/guardian_emotion_system.m
 
 | Path | Contents |
 |---|---|
-| `assets/backgrounds/` | Five valley plates (WebP, 1376 × 768). |
+| `assets/backgrounds/` | Five valley plates, 1376 × 768. Four WebP + **`guardian_valley_clouds.png`**. |
 | `assets/guardian/` | Eleven Guardian expression frames (WebP, 1024²). |
 | `art_source/` | Full-resolution masters. **Not bundled**, gitignored. |
-| `tool/prepare_art_assets.py` | De-mattes the plates and transcodes to WebP. |
+| `tool/prepare_art_assets.py` | De-mattes every plate and transcodes them. |
+| `tool/rebuild_cloud_plate.py` | Rebuilds **only** the cloud plate. |
 
 The generated overlays arrived with the transparency checkerboard baked into
 RGB; the tool reconstructs a real alpha channel per plate. It also cut the
 bundle from **15.4 MB to 2.4 MB**. See
 [docs/ecolens_background_prompt.md](docs/ecolens_background_prompt.md).
 
+**The cloud plate is a PNG, not WebP — do not "optimise" it back.** The clouds
+are the one layer whose picture lives in the *alpha* channel (pure white drawn at
+partial opacity), and WebP's lossy alpha put visible blocking into the soft cloud
+edges — against a flat sky, on the only plate that scrolls continuously. PNG is
+lossless there and worth the extra ~100 KB. `test/widget/cloud_layer_test.dart`
+locks this in, including a check that **no residual checkerboard survives in the
+cloud RGB** (the failure mode where the background is cleared but the grey stays
+baked inside the semi-transparent cloud bodies, which renders as a grey grid
+across the sky). Regenerate with `python tool/rebuild_cloud_plate.py` — never by
+hand-exporting from an image editor.
+
+### Guardian Valley UI kit
+
+Every information container in the student experience is built from one design
+system, so the kiosk reads as a game rather than a dashboard on a nice
+background.
+
+| File | Contents |
+|---|---|
+| `lib/core/theme/valley_tokens.dart` | **Tokens**: radii, border weights, shadows, header heights, spacing, icon sizes, text hierarchy, animation durations — plus the seven `ValleyTheme` palettes. |
+| `lib/shared/components/valley_ui.dart` | **Components**: `ValleyGamePanel`, `ValleyPanelHeader`, `ValleyPanelBody`, `ValleyStatTile`, `ValleyImpactStat`, `ValleyIconMedallion`, `ValleyProgressBar`, `ValleyQuestTrail`, `ValleyRankRow`, `ValleyBadge`, `ValleyRewardChip`, `ValleySectionLabel`, `ValleyActionButton`, `ValleyDestinationCard`, `ValleyCountUp`, `ValleyEntrance`. |
+| `lib/shared/components/game_scale.dart` | `GameScale` / `GameStage` — the single scale factor everything sizes from. |
+| `lib/shared/components/game_ui.dart` | Kiosk-specific surfaces: HUD chips, the dialogue bubble, the four world portals. |
+
+The rules the kit encodes:
+
+- **No plain white rectangles.** A panel is a layered surface: coloured top band,
+  warm cream/mint body gradient, inner highlight, leaf and vine corner accents,
+  and a two-part shadow (wide ambient bloom + tight contact shadow — one big blur
+  alone reads as a floating web card).
+- **Colour means something, and never on its own.** Green is you and your
+  Guardian, blue the whole school, gold rewards and rankings, purple level and XP,
+  teal your card, coral the only warning tone. Every state also carries a glyph,
+  a number or a word: rank rows always draw their position, portals always draw a
+  check / lightbulb / lock.
+- **One geometry source.** No panel invents its own radius, shadow or colour;
+  a colour that is *data* (a house colour) goes through
+  `ValleyThemeColours.fromAccent` so it still lands in the family.
+- **Compact screens give up decoration, never information.** Panels tier their
+  own density from the height they actually have — smaller medallions, tighter
+  vertical rhythm, encouragement microcopy dropped — and only then fall back to
+  scrolling. Deliberately *not* a `FittedBox`: scaling a panel down silences the
+  overflow assertion while rendering content too small to read.
+
 ### Accessibility
 
 Three HUD controls, all of which change real behaviour and are covered by tests:
 
-- **Sound** — mutes every Guardian cue. Cues are debounced twice so a rebuild
-  can never make the kiosk chirp.
-- **Calm mode** — freezes parallax, cloud drift, particles and the Guardian's
-  continuous motion. Expression cross-fades remain, because they carry meaning,
-  and success/failure stay readable through text and colour. Calm mode does
-  **not** mute sound; they are separate needs.
+- **Sound** — mutes every Guardian cue **and the Guardian's voice**, immediately
+  and mid-sentence. Cues are debounced twice so a rebuild can never make the
+  kiosk chirp. While muted the speaker replay control is hidden rather than left
+  as a button that does nothing.
+- **Calm mode** — freezes parallax, cloud drift, particles, panel entrances and
+  the Guardian's continuous motion. Expression cross-fades remain, because they
+  carry meaning. A tap on the Guardian still responds, with a short scale pulse
+  instead of a hop or spin, and still delivers its text and voice line — reduced
+  motion simplifies feedback, it never removes it. Calm mode does **not** mute
+  sound; they are separate needs.
 - **Bigger text** — raises the whole game scale.
+
+Beyond the three toggles: minimum 48-px targets on every primary action and on
+the speech-bubble replay control, keyboard activation of the Guardian and the
+portals (<kbd>Enter</kbd> / <kbd>Space</kbd>), visible focus rings, live-region
+announcements on the scan status, and no state that depends on colour alone.
+
+### Talking to Sprout
+
+The Guardian **speaks its dialogue aloud** and **reacts to being touched**. Both
+are documented in full — platforms, voice selection, dedupe/mute/priority rules,
+replay, the tap policy, the cooldown, animation priorities and the reduced-motion
+behaviour — in
+[docs/guardian_voice_and_interaction.md](docs/guardian_voice_and_interaction.md).
+
+The short version:
+
+- On **Flutter Web** the browser's own `speechSynthesis` speaks the line. **No
+  package, no network, no API key, no third-party recordings.** Every other target
+  falls back to a silent implementation and stays completely functional; adding
+  `flutter_tts` in one file gives Android a voice.
+- The bubble and the voice read the **same** dialogue event, so what is written is
+  what is heard. One utterance per dialogue moment — a rebuild is silent.
+- Tapping Sprout plays a short reaction **layered over** the current expression,
+  so it can never contradict the workflow. Accepted only in calm states, once per
+  1.9-second cooldown, with no line or motion repeating back to back.
 
 ---
 
@@ -270,9 +344,20 @@ The kiosk is a **shared device**, so:
 ## Testing
 
 ```bash
-flutter test                    # everything
+flutter test                    # everything — 334 tests
 flutter test test/unit          # domain/service unit tests
 flutter test test/widget        # kiosk + dashboard + canteen widget tests
+```
+
+Targeted suites:
+
+```bash
+flutter test test/widget/cloud_layer_test.dart        # cloud PNG migration + matte
+flutter test test/unit/guardian_voice_test.dart       # voice policy
+flutter test test/unit/guardian_interaction_test.dart # tap policy
+flutter test test/widget/guardian_tap_test.dart       # taps wired into the kiosk
+flutter test test/widget/valley_panels_test.dart      # panels keep every value/route
+flutter test test/widget/panel_visibility_test.dart   # content is actually readable
 ```
 
 **Unit tests** cover: student-card auth, unknown-card handling, correct-category reward, incorrect = no points (never negative), daily cap, 20-cycle bonus, streak calculation, weekend/holiday streak handling, reward redemption + insufficient balance, session timeout & data clearing, invalid kiosk state transitions, hardware controller disconnection, offline session queue + idempotency, monetary-conversion configurability, and role-based route protection.
@@ -308,10 +393,31 @@ They additionally assert:
 - The impact panel's school-wide figures and the four waste-category world portals.
 - Calm mode actually freezes ambient motion, and bigger text actually raises the game scale.
 
-Verify static analysis with:
+**Guardian Valley UI tests** — the redesign is held to "prettier cost nothing":
+
+- Every destination card still reaches its real route, including the staff login
+  guards; the four portals still fire their category actions.
+- Every statistic survives the restyle, in its new child-facing wording, and
+  nothing anywhere says *Oops*, *Wrong*, *Failed* or *Error*.
+- Portal feedback is **drawn, not merely tinted**: a check badge and a rising
+  reward on a correct sort, a lightbulb (never a cross) on an incorrect one, a
+  lock that actually refuses taps.
+- Hostile data — a 21-character hyphenated name, six-figure XP, a 365-day streak,
+  a 24-word school name — stays contained at the smallest and largest viewports.
+
+**Visibility tests** (`panel_visibility_test.dart`) exist because *"no overflow"*
+is a weaker promise than it looks: a `FittedBox` silences the overflow assertion
+while shrinking content past legibility, and an entrance animation stuck at
+`opacity: 0` reserves its space and paints nothing. Both leave
+`takeException()` null. So for every value a student needs, at all seven
+viewports — attract, recognised, and with bigger text — these assert it **exists**,
+is **fully opaque**, sits **inside the viewport**, and has a **legible height**.
+
+Verify static analysis and formatting with:
 
 ```bash
-flutter analyze                 # expected: No issues found!
+flutter analyze                                      # expected: No issues found!
+dart format --output=none --set-exit-if-changed .    # expected: 0 changed
 ```
 
 ---
