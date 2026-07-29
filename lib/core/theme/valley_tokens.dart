@@ -215,6 +215,22 @@ class ValleyThemeColours {
 
   /// The border of an inner tile.
   Color get tileBorder => accent.withValues(alpha: 0.34);
+
+  /// Derives a panel palette from a single accent colour.
+  ///
+  /// The escape hatch for surfaces whose colour is data — a house colour, a
+  /// waste-category colour — rather than one of the named [ValleyTheme]s. The
+  /// body still lands on warm cream rather than white, so a derived panel is
+  /// visually part of the same family.
+  factory ValleyThemeColours.fromAccent(Color accent) {
+    return ValleyThemeColours(
+      accent: accent,
+      accentDeep: Color.lerp(accent, const Color(0xFF10240F), 0.34)!,
+      surfaceTop: Color.lerp(const Color(0xFFFDFEFA), accent, 0.03)!,
+      surfaceBottom: Color.lerp(const Color(0xFFF2F7EF), accent, 0.14)!,
+      ink: Color.lerp(accent, const Color(0xFF14210F), 0.72)!,
+    );
+  }
 }
 
 extension ValleyThemeX on ValleyTheme {

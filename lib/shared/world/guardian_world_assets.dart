@@ -68,8 +68,17 @@ abstract final class GuardianWorldAssets {
     parallax: 2,
   );
 
+  /// The cloud plate ships as a **PNG**, not WebP, unlike every other layer.
+  ///
+  /// Clouds are pure white drawn at partial opacity across their whole extent,
+  /// so they are the one plate whose alpha channel carries most of the picture.
+  /// WebP's lossy alpha put faint blocking into the soft cloud edges where it
+  /// was most visible — against a flat sky, with the plate scrolling. PNG's
+  /// lossless alpha costs ~140 KB more and is the right trade here.
+  ///
+  /// Do not transcode this back to WebP. See `docs/ecolens_background_prompt.md`.
   static const WorldLayerAsset clouds = WorldLayerAsset(
-    path: '${_bg}guardian_valley_clouds.webp',
+    path: '${_bg}guardian_valley_clouds.png',
     parallax: 9,
     opacity: 0.92,
   );

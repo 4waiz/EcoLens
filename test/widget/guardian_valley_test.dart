@@ -180,21 +180,28 @@ void main() {
     expect(find.text('Grade 4 · Class 4B'), findsOneWidget);
     expect(find.textContaining('STU-2026'), findsNothing);
 
-    // Every stat the brief asks for.
+    // Every stat the brief asks for, in the child-facing wording. "Correct" and
+    // "Oops" were renamed on purpose (see ProfileCopy): a wrong bin is practice,
+    // not a failure, and nothing in the student experience calls it one.
     for (final label in [
       'COINS',
       'LEVEL',
       'STREAK',
       'BEST',
-      'CORRECT',
-      'OOPS',
+      'GREAT SORTS',
+      'LEARNING',
       'XP',
-      'SCORE',
+      'ECO SCORE',
     ]) {
       expect(find.text(label), findsWidgets, reason: 'missing $label tile');
     }
     expect(find.text("TODAY'S RECYCLING"), findsOneWidget);
     expect(find.text('Taurus House'), findsWidgets);
+
+    // The old, blunter labels must be gone for good.
+    expect(find.text('OOPS'), findsNothing);
+    expect(find.text('CORRECT'), findsNothing);
+    expect(find.textContaining('Oops'), findsNothing);
   });
 
   testWidgets('the impact panel reports school-wide results', (tester) async {
@@ -206,7 +213,10 @@ void main() {
     expect(find.text('312'), findsOneWidget);
     expect(find.text('48 kg'), findsOneWidget);
     expect(find.text('86%'), findsOneWidget);
-    expect(find.text('WEEKLY SCHOOL GOAL'), findsOneWidget);
+    // "Weekly school goal" is now framed as a quest, and still carries the same
+    // numbers.
+    expect(find.text('SCHOOL QUEST'), findsOneWidget);
+    expect(find.text('312 of 500 items'), findsOneWidget);
   });
 
   testWidgets('the four waste categories are world portals', (tester) async {

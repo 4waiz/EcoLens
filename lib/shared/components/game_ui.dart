@@ -1,230 +1,85 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+// LogicalKeyboardKey: portals are activatable from the keyboard.
+import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/valley_tokens.dart';
 import '../painters/valley_painters.dart';
+import '../world/guardian_face_badge.dart';
+import 'game_scale.dart';
+import 'valley_ui.dart';
+
+export 'game_scale.dart';
 
 /// ---------------------------------------------------------------------------
-/// The EcoLens game UI kit.
+/// The EcoLens game UI kit — the pieces that are specific to the *kiosk*.
 ///
-/// Chunky, high-contrast, touch-first components designed to sit on top of the
-/// Guardian Valley world: wooden-edged panels, HUD pills, XP meters, speech
-/// bubbles and world-portal buttons.
+/// The generic Guardian Valley language (panels, tiles, medallions, trails,
+/// badges) lives in `valley_ui.dart`; this file holds the surfaces that only
+/// the kiosk has: the HUD chips, the Guardian's dialogue bubble and the four
+/// world portals. The older component names are kept and now delegate to the
+/// Valley kit, so every existing screen picks up the new look without a rename.
 ///
 /// Everything sizes off [GameScale] — one factor derived from the available
 /// height — so the whole interface shrinks gracefully on a small window and
 /// grows on a 4K kiosk WITHOUT any layout ever overflowing.
 /// ---------------------------------------------------------------------------
 
-/// Provides the current UI scale to the whole game subtree.
-class GameScale extends InheritedWidget {
-  const GameScale({super.key, required this.scale, required super.child});
-
-  final double scale;
-
-  static double of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<GameScale>()?.scale ?? 1.0;
-
-  @override
-  bool updateShouldNotify(GameScale oldWidget) => oldWidget.scale != scale;
-}
-
-extension GameScaleX on BuildContext {
-  /// The current game UI scale factor.
-  double get gameScale => GameScale.of(this);
-
-  /// Scales a design-space value into the current surface.
-  double gs(double designValue) => designValue * GameScale.of(this);
-}
-
-/// Wraps [child] in a [GameScale] derived from the surface size.
-///
-/// The design canvas is 1440 x 860 logical pixels (a 16:10 kiosk). The scale is
-/// clamped so text stays legible on small dev windows and does not become
-/// cartoonishly large on very tall displays.
-class GameStage extends StatelessWidget {
-  const GameStage({
-    super.key,
-    required this.builder,
-    this.designHeight = 860,
-    this.designWidth = 1440,
-    this.minScale = 0.52,
-    // Generous ceiling: the hero layouts absorb extra scale in their flexible
-    // centre stage, so a large kiosk (and the "bigger text" boost) can grow the
-    // UI without the fixed chrome ever exceeding the surface.
-    this.maxScale = 1.55,
-    this.boost = 1.0,
-  });
-
-  final Widget Function(BuildContext context, double scale) builder;
-  final double designHeight;
-  final double designWidth;
-  final double minScale;
-  final double maxScale;
-
-  /// Accessibility multiplier (e.g. the kiosk "bigger text" toggle). Applied
-  /// before clamping so it can never push the layout past [maxScale].
-  final double boost;
-
-  /// The scale this stage would resolve for [surface].
-  ///
-  /// Exposed so subtrees rendered *outside* the stage — the Guardian and its
-  /// speech bubble, which live in the world layer — can size themselves
-  /// identically instead of silently falling back to 1.0.
-  static double scaleFor(
-    Size surface, {
-    double boost = 1.0,
-    double designHeight = 860,
-    double designWidth = 1440,
-    double minScale = 0.52,
-    double maxScale = 1.55,
-  }) {
-    final raw =
-        math.min(
-          surface.height / designHeight,
-          (surface.width / designWidth) * 1.25,
-        ) *
-        boost;
-    return raw.clamp(minScale, maxScale);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final h = constraints.maxHeight.isFinite
-            ? constraints.maxHeight
-            : designHeight;
-        final w = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : designWidth;
-        // Height drives the scale (kiosks are height-constrained); width acts
-        // as a ceiling so a short-and-narrow window still fits.
-        final raw =
-            math.min(h / designHeight, (w / designWidth) * 1.25) * boost;
-        final scale = raw.clamp(minScale, maxScale);
-        return GameScale(
-          scale: scale,
-          child: Builder(builder: (context) => builder(context, scale)),
-        );
-      },
-    );
-  }
-}
-
 // ---------------------------------------------------------------------------
 // Panels
 // ---------------------------------------------------------------------------
 
-/// A frosted "carved wood + leaf" panel used for every HUD surface.
+/// A Guardian Valley information panel.
+///
+/// Retained as the kiosk's panel entry point; the layered surface itself is
+/// [ValleyGamePanel]. Pass [theme] for one of the designed palettes, or leave it
+/// null and a palette is derived from [accent] (for colours that are data, like
+/// a house colour).
 class GamePanel extends StatelessWidget {
   const GamePanel({
     super.key,
     required this.child,
     this.title,
+    this.subtitle,
     this.icon,
     this.accent = AppColors.primary,
+    this.theme,
+    this.trailing,
+    this.footer,
     this.padding,
     this.compact = false,
+    this.decorate = true,
   });
 
   final Widget child;
   final String? title;
+  final String? subtitle;
   final IconData? icon;
   final Color accent;
+  final ValleyTheme? theme;
+  final Widget? trailing;
+  final Widget? footer;
   final EdgeInsets? padding;
   final bool compact;
+  final bool decorate;
 
   @override
   Widget build(BuildContext context) {
-    final s = context.gameScale;
-    final radius = BorderRadius.circular(26 * s);
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        boxShadow: [
-          BoxShadow(
-            color: ValleyPalette.forestDark.withValues(alpha: 0.28),
-            blurRadius: 22 * s,
-            offset: Offset(0, 8 * s),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.93),
-            borderRadius: radius,
-            border: Border.all(
-              color: accent.withValues(alpha: 0.55),
-              width: 3 * s,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (title != null)
-                _PanelHeader(title: title!, icon: icon, accent: accent),
-              Padding(
-                padding:
-                    padding ??
-                    EdgeInsets.symmetric(
-                      horizontal: (compact ? 12 : 16) * s,
-                      vertical: (compact ? 10 : 14) * s,
-                    ),
-                child: child,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PanelHeader extends StatelessWidget {
-  const _PanelHeader({required this.title, required this.accent, this.icon});
-
-  final String title;
-  final IconData? icon;
-  final Color accent;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.gameScale;
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14 * s, vertical: 9 * s),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [accent, Color.lerp(accent, Colors.black, 0.18)!],
-        ),
-      ),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Icon(icon, color: Colors.white, size: 19 * s),
-            SizedBox(width: 8 * s),
-          ],
-          Expanded(
-            child: Text(
-              title.toUpperCase(),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13 * s,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.1 * s,
-                height: 1.1,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return ValleyGamePanel(
+      theme: theme ?? ValleyTheme.forest,
+      colours: theme == null ? ValleyThemeColours.fromAccent(accent) : null,
+      title: title,
+      subtitle: subtitle,
+      icon: icon,
+      trailing: trailing,
+      footer: footer,
+      padding: padding,
+      compact: compact,
+      decorate: decorate,
+      child: child,
     );
   }
 }
@@ -233,8 +88,8 @@ class _PanelHeader extends StatelessWidget {
 // Stat tiles
 // ---------------------------------------------------------------------------
 
-/// A single game stat: small caps label above a big bold value, in a tinted
-/// rounded tile (the layout used across the student panel).
+/// A single game stat: a small caps label above a big bold value, in a tinted
+/// rounded tile with an icon medallion.
 class GameStatTile extends StatelessWidget {
   const GameStatTile({
     super.key,
@@ -243,6 +98,9 @@ class GameStatTile extends StatelessWidget {
     required this.accent,
     this.icon,
     this.dense = false,
+    this.hero = false,
+    this.count,
+    this.footnote,
   });
 
   final String label;
@@ -251,67 +109,25 @@ class GameStatTile extends StatelessWidget {
   final IconData? icon;
   final bool dense;
 
+  /// Makes this the loudest tile in its column.
+  final bool hero;
+
+  /// When the value is a plain integer, pass it here too so it counts up.
+  final int? count;
+
+  final String? footnote;
+
   @override
-  Widget build(BuildContext context) {
-    final s = context.gameScale;
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10 * s,
-        vertical: (dense ? 6 : 8) * s,
-      ),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: 0.13),
-        borderRadius: BorderRadius.circular(14 * s),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.35),
-          width: 1.5 * s,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 12 * s, color: accent),
-                SizedBox(width: 4 * s),
-              ],
-              Flexible(
-                child: Text(
-                  label.toUpperCase(),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10 * s,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8 * s,
-                    color: Color.lerp(accent, Colors.black, 0.25),
-                    height: 1.1,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 2 * s),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              value,
-              maxLines: 1,
-              style: TextStyle(
-                fontSize: (dense ? 20 : 24) * s,
-                fontWeight: FontWeight.w900,
-                color: Color.lerp(accent, Colors.black, 0.30),
-                height: 1.05,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => ValleyStatTile(
+    label: label,
+    value: value,
+    count: count,
+    accent: accent,
+    icon: icon,
+    dense: dense,
+    hero: hero,
+    footnote: footnote,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -341,19 +157,29 @@ class HudPill extends StatelessWidget {
     return Semantics(
       label: semanticsLabel,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12 * s, vertical: 7 * s),
+        padding: EdgeInsets.symmetric(horizontal: 11 * s, vertical: 6 * s),
         decoration: BoxDecoration(
-          color: filled ? accent : Colors.white.withValues(alpha: 0.92),
-          borderRadius: BorderRadius.circular(999),
+          gradient: filled
+              ? LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.lerp(accent, Colors.white, 0.24)!,
+                    Color.lerp(accent, Colors.black, 0.1)!,
+                  ],
+                )
+              : null,
+          color: filled ? null : const Color(0xFFFBFEF8).withValues(alpha: 0.94),
+          borderRadius: BorderRadius.circular(ValleyTokens.radiusPill),
           border: Border.all(
             color: filled
-                ? Color.lerp(accent, Colors.black, 0.22)!
+                ? Colors.white.withValues(alpha: 0.72)
                 : accent.withValues(alpha: 0.5),
-            width: 2 * s,
+            width: 1.9 * s,
           ),
           boxShadow: [
             BoxShadow(
-              color: ValleyPalette.forestDark.withValues(alpha: 0.20),
+              color: ValleyPalette.forestDark.withValues(alpha: 0.2),
               blurRadius: 8 * s,
               offset: Offset(0, 3 * s),
             ),
@@ -363,16 +189,20 @@ class HudPill extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 16 * s, color: filled ? Colors.white : accent),
-              SizedBox(width: 6 * s),
+              Icon(
+                icon,
+                size: valleyLegible(15, s, 13) * s,
+                color: filled ? Colors.white : accent,
+              ),
+              SizedBox(width: 5 * s),
             ],
             Text(
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 14 * s,
-                fontWeight: FontWeight.w800,
+                fontSize: valleyLegible(13.5, s, 12) * s,
+                fontWeight: FontWeight.w900,
                 height: 1.1,
                 color: filled
                     ? Colors.white
@@ -395,7 +225,8 @@ class GameMeter extends StatelessWidget {
     this.trailing,
     this.accent = AppColors.xpPurple,
     this.width,
-    this.height = 16,
+    this.height = 15,
+    this.animate = true,
   });
 
   /// 0..1.
@@ -405,99 +236,26 @@ class GameMeter extends StatelessWidget {
   final Color accent;
   final double? width;
   final double height;
+  final bool animate;
 
   @override
   Widget build(BuildContext context) {
     final s = context.gameScale;
-    final v = value.clamp(0.0, 1.0);
-    final bar = Container(
-      width: width == null ? null : width! * s,
-      height: height * s,
-      decoration: BoxDecoration(
-        color: ValleyPalette.forestDark.withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.55),
-          width: 1.5 * s,
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(999),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: FractionallySizedBox(
-            widthFactor: v == 0 ? 0.0001 : v,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color.lerp(accent, Colors.white, 0.35)!, accent],
-                ),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: FractionallySizedBox(
-                  heightFactor: 0.42,
-                  widthFactor: 0.92,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.34),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+    final bar = ValleyProgressBar(
+      value: value,
+      label: label,
+      trailing: trailing,
+      accent: accent,
+      height: height,
+      animate: animate,
     );
-
-    if (label == null && trailing == null) return bar;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          children: [
-            if (label != null)
-              Flexible(
-                child: Text(
-                  label!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 11 * s,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.6 * s,
-                    color: AppColors.inkMuted,
-                  ),
-                ),
-              ),
-            if (trailing != null) ...[
-              const Spacer(),
-              Text(
-                trailing!,
-                maxLines: 1,
-                style: TextStyle(
-                  fontSize: 11 * s,
-                  fontWeight: FontWeight.w900,
-                  color: Color.lerp(accent, Colors.black, 0.25),
-                ),
-              ),
-            ],
-          ],
-        ),
-        SizedBox(height: 4 * s),
-        bar,
-      ],
-    );
+    if (width == null) return bar;
+    return SizedBox(width: width! * s, child: bar);
   }
 }
 
 /// A round, chunky icon button (sound, accessibility, help…).
-class GameIconButton extends StatelessWidget {
+class GameIconButton extends StatefulWidget {
   const GameIconButton({
     super.key,
     required this.icon,
@@ -514,33 +272,47 @@ class GameIconButton extends StatelessWidget {
   final bool active;
 
   @override
+  State<GameIconButton> createState() => _GameIconButtonState();
+}
+
+class _GameIconButtonState extends State<GameIconButton> {
+  bool _focused = false;
+
+  @override
   Widget build(BuildContext context) {
     final s = context.gameScale;
-    final size = 40 * s;
+    // Floored at 40 logical pixels: these controls sit in a dense HUD row, and
+    // the kiosk's primary actions carry the 48px target.
+    final size = math.max(40 * s, 40.0);
     return Tooltip(
-      message: tooltip,
+      message: widget.tooltip,
       child: Semantics(
         button: true,
-        label: tooltip,
-        toggled: active,
+        label: widget.tooltip,
+        toggled: widget.active,
         child: Material(
-          color: active ? Colors.white.withValues(alpha: 0.92) : Colors.white70,
+          color: widget.active
+              ? const Color(0xFFFBFEF8).withValues(alpha: 0.94)
+              : const Color(0xFFF0F4EE).withValues(alpha: 0.9),
           shape: CircleBorder(
             side: BorderSide(
-              color: accent.withValues(alpha: active ? 0.6 : 0.25),
-              width: 2 * s,
+              color: _focused
+                  ? widget.accent
+                  : widget.accent.withValues(alpha: widget.active ? 0.6 : 0.25),
+              width: (_focused ? 3.2 : 2) * s,
             ),
           ),
           child: InkWell(
             customBorder: const CircleBorder(),
-            onTap: onPressed,
+            onTap: widget.onPressed,
+            onFocusChange: (v) => setState(() => _focused = v),
             child: SizedBox(
               width: size,
               height: size,
               child: Icon(
-                icon,
-                size: 20 * s,
-                color: active ? accent : AppColors.inkFaint,
+                widget.icon,
+                size: size * 0.5,
+                color: widget.active ? widget.accent : AppColors.inkFaint,
               ),
             ),
           ),
@@ -557,8 +329,18 @@ class GameIconButton extends StatelessWidget {
 /// Where the bubble's tail points.
 enum SpeechTail { bottom, bottomLeft, left, right, none }
 
-/// The Guardian's speech bubble. Animates in with a friendly pop so it reads as
-/// the dragon *saying* something rather than a static caption.
+/// ---------------------------------------------------------------------------
+/// The Guardian's dialogue bubble.
+///
+/// A game dialogue box, not a caption: cream body, forest-green rim, a small
+/// drawn Sprout portrait, a pointer aimed at the character, and — when a voice
+/// is available — a speaker control to hear the line again plus a talking
+/// indicator while it plays.
+///
+/// It animates in with a friendly pop so it reads as the dragon *saying*
+/// something. Width is capped and every string wraps rather than clipping, so a
+/// long name or the bigger-text setting can never cut a sentence off.
+/// ---------------------------------------------------------------------------
 class GuardianSpeechBubble extends StatefulWidget {
   const GuardianSpeechBubble({
     super.key,
@@ -566,9 +348,14 @@ class GuardianSpeechBubble extends StatefulWidget {
     this.headline,
     this.tail = SpeechTail.bottom,
     this.accent = AppColors.primary,
+    this.theme,
     this.maxWidth = 460,
     this.footer,
     this.animate = true,
+    this.showPortrait = true,
+    this.onReplay,
+    this.speaking,
+    this.replayLabel = 'Hear that again',
   });
 
   final String text;
@@ -576,12 +363,32 @@ class GuardianSpeechBubble extends StatefulWidget {
   /// Optional bold first line (e.g. "Hi there, young Guardian!").
   final String? headline;
   final SpeechTail tail;
+
+  /// Legacy accent. Ignored when [theme] is supplied.
   final Color accent;
+
+  /// The bubble's mood. Neutral cream/green by default; pale blue for thinking,
+  /// green/gold for a correct sort, warm amber for a gentle retry, purple for a
+  /// level-up.
+  final ValleyTheme? theme;
+
   final double maxWidth;
 
   /// Optional widget under the message (a chip, a hint, a countdown…).
   final Widget? footer;
   final bool animate;
+
+  /// The small Sprout portrait at the left of the bubble.
+  final bool showPortrait;
+
+  /// Speak the current line again. Null hides the control entirely — which is
+  /// what happens on a device with no speech engine.
+  final VoidCallback? onReplay;
+
+  /// True while the line is being spoken. Drives the talking indicator.
+  final ValueListenable<bool>? speaking;
+
+  final String replayLabel;
 
   @override
   State<GuardianSpeechBubble> createState() => _GuardianSpeechBubbleState();
@@ -621,55 +428,103 @@ class _GuardianSpeechBubbleState extends State<GuardianSpeechBubble>
   @override
   Widget build(BuildContext context) {
     final s = context.gameScale;
+    final c = widget.theme?.colours ??
+        ValleyThemeColours.fromAccent(widget.accent);
+    final portrait = 34.0 * s;
+
+    final message = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.headline != null) ...[
+          Text(
+            widget.headline!,
+            style: TextStyle(
+              fontSize: valleyLegible(19, s, 16) * s,
+              height: 1.2,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.3 * s,
+              color: c.accentDeep,
+            ),
+          ),
+          SizedBox(height: 3 * s),
+        ],
+        Text(
+          widget.text,
+          style: TextStyle(
+            fontSize: valleyLegible(16, s, 14) * s,
+            height: 1.34,
+            fontWeight: FontWeight.w700,
+            color: AppColors.ink,
+          ),
+        ),
+        if (widget.footer != null) ...[
+          SizedBox(height: 9 * s),
+          widget.footer!,
+        ],
+      ],
+    );
 
     final content = ConstrainedBox(
       constraints: BoxConstraints(maxWidth: widget.maxWidth * s),
       child: CustomPaint(
         painter: _BubblePainter(
           tail: widget.tail,
-          accent: widget.accent,
+          colours: c,
           scale: s,
         ),
         child: Padding(
           padding: EdgeInsets.fromLTRB(
-            widget.tail == SpeechTail.left ? 26 * s : 20 * s,
-            16 * s,
-            widget.tail == SpeechTail.right ? 26 * s : 20 * s,
+            widget.tail == SpeechTail.left ? 24 * s : 15 * s,
+            13 * s,
+            widget.tail == SpeechTail.right ? 24 * s : 15 * s,
             widget.tail == SpeechTail.bottom ||
                     widget.tail == SpeechTail.bottomLeft
-                ? 26 * s
-                : 16 * s,
+                ? 24 * s
+                : 13 * s,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (widget.headline != null) ...[
-                Text(
-                  widget.headline!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 21 * s,
-                    height: 1.2,
-                    fontWeight: FontWeight.w900,
-                    color: Color.lerp(widget.accent, Colors.black, 0.35),
+              if (widget.showPortrait) ...[
+                // Fixed box, so the talking indicator appearing cannot reflow
+                // a single word of the message.
+                SizedBox(
+                  width: portrait,
+                  height: portrait,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      GuardianFaceBadge(
+                        size: portrait,
+                        animate: widget.animate,
+                      ),
+                      if (widget.speaking != null)
+                        Positioned(
+                          right: -2 * s,
+                          bottom: -1 * s,
+                          child: _TalkingWaves(
+                            speaking: widget.speaking!,
+                            colour: c.accentDeep,
+                            size: portrait * 0.44,
+                            animate: widget.animate,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 4 * s),
+                SizedBox(width: 9 * s),
               ],
-              Text(
-                widget.text,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 17 * s,
-                  height: 1.35,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.ink,
+              Expanded(child: message),
+              if (widget.onReplay != null) ...[
+                SizedBox(width: 8 * s),
+                _BubbleSpeakerButton(
+                  onPressed: widget.onReplay!,
+                  speaking: widget.speaking,
+                  colours: c,
+                  label: widget.replayLabel,
+                  animate: widget.animate,
                 ),
-              ),
-              if (widget.footer != null) ...[
-                SizedBox(height: 10 * s),
-                widget.footer!,
               ],
             ],
           ),
@@ -701,15 +556,209 @@ class _GuardianSpeechBubbleState extends State<GuardianSpeechBubble>
   }
 }
 
+/// Three little bars that rise and fall while a line is being spoken.
+///
+/// Deliberately *beside* the portrait rather than distorting it: stretching the
+/// Guardian's face to fake a mouth looks like a rendering bug.
+class _TalkingWaves extends StatefulWidget {
+  const _TalkingWaves({
+    required this.speaking,
+    required this.colour,
+    required this.size,
+    required this.animate,
+  });
+
+  final ValueListenable<bool> speaking;
+  final Color colour;
+  final double size;
+  final bool animate;
+
+  @override
+  State<_TalkingWaves> createState() => _TalkingWavesState();
+}
+
+class _TalkingWavesState extends State<_TalkingWaves>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _wave = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 620),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    widget.speaking.addListener(_onSpeakingChanged);
+    if (widget.speaking.value) _onSpeakingChanged();
+  }
+
+  @override
+  void didUpdateWidget(covariant _TalkingWaves old) {
+    super.didUpdateWidget(old);
+    if (old.speaking == widget.speaking) return;
+    old.speaking.removeListener(_onSpeakingChanged);
+    widget.speaking.addListener(_onSpeakingChanged);
+  }
+
+  void _onSpeakingChanged() {
+    if (!mounted) return;
+    if (widget.speaking.value && widget.animate) {
+      if (!_wave.isAnimating) _wave.repeat(reverse: true);
+    } else {
+      _wave.stop();
+      _wave.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.speaking.removeListener(_onSpeakingChanged);
+    _wave.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.speaking,
+      builder: (context, speaking, _) {
+        if (!speaking) return SizedBox.square(dimension: widget.size);
+        return ExcludeSemantics(
+          child: RepaintBoundary(
+            child: AnimatedBuilder(
+              animation: _wave,
+              builder: (context, _) => CustomPaint(
+                size: Size.square(widget.size),
+                painter: _TalkingWavesPainter(
+                  t: _wave.value,
+                  colour: widget.colour,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _TalkingWavesPainter extends CustomPainter {
+  const _TalkingWavesPainter({required this.t, required this.colour});
+
+  final double t;
+  final Color colour;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // A soft disc so the bars stay legible over the Guardian's cheek.
+    canvas.drawCircle(
+      size.center(Offset.zero),
+      size.width * 0.5,
+      Paint()..color = Colors.white.withValues(alpha: 0.92),
+    );
+    canvas.drawCircle(
+      size.center(Offset.zero),
+      size.width * 0.5,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1, size.width * 0.07)
+        ..color = colour.withValues(alpha: 0.5),
+    );
+
+    final barW = size.width * 0.12;
+    final cy = size.height * 0.5;
+    final paint = Paint()
+      ..color = colour
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = barW
+      ..style = PaintingStyle.stroke;
+
+    for (var i = 0; i < 3; i++) {
+      final phase = (t + i * 0.28) % 1.0;
+      final h = size.height * (0.14 + 0.20 * math.sin(phase * math.pi));
+      final x = size.width * (0.30 + i * 0.20);
+      canvas.drawLine(Offset(x, cy - h), Offset(x, cy + h), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _TalkingWavesPainter old) =>
+      old.t != t || old.colour != colour;
+}
+
+/// The "hear that again" control inside the bubble.
+class _BubbleSpeakerButton extends StatelessWidget {
+  const _BubbleSpeakerButton({
+    required this.onPressed,
+    required this.colours,
+    required this.label,
+    required this.animate,
+    this.speaking,
+  });
+
+  final VoidCallback onPressed;
+  final ValleyThemeColours colours;
+  final String label;
+  final bool animate;
+  final ValueListenable<bool>? speaking;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.gameScale;
+    // Never below the 48px accessible minimum, whatever the game scale does.
+    final d = math.max(40 * s, 48.0);
+
+    Widget button(bool isSpeaking) => Semantics(
+      button: true,
+      label: isSpeaking ? 'Sprout is speaking. $label' : label,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: label,
+        child: Material(
+          color: isSpeaking
+              ? colours.accent.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.86),
+          shape: CircleBorder(
+            side: BorderSide(
+              color: colours.accent.withValues(alpha: isSpeaking ? 0.85 : 0.45),
+              width: 2 * s,
+            ),
+          ),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onPressed,
+            child: SizedBox(
+              width: d,
+              height: d,
+              child: Icon(
+                isSpeaking
+                    ? Icons.graphic_eq_rounded
+                    : Icons.volume_up_rounded,
+                size: d * 0.46,
+                color: colours.accentDeep,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    if (speaking == null) return button(false);
+    return ValueListenableBuilder<bool>(
+      valueListenable: speaking!,
+      builder: (context, isSpeaking, _) => button(isSpeaking && animate),
+    );
+  }
+}
+
 class _BubblePainter extends CustomPainter {
   const _BubblePainter({
     required this.tail,
-    required this.accent,
+    required this.colours,
     required this.scale,
   });
 
   final SpeechTail tail;
-  final Color accent;
+  final ValleyThemeColours colours;
   final double scale;
 
   @override
@@ -728,7 +777,7 @@ class _BubblePainter extends CustomPainter {
     );
 
     final path = Path()
-      ..addRRect(RRect.fromRectAndRadius(body, Radius.circular(24 * s)));
+      ..addRRect(RRect.fromRectAndRadius(body, Radius.circular(22 * s)));
 
     switch (tail) {
       case SpeechTail.bottom:
@@ -763,20 +812,46 @@ class _BubblePainter extends CustomPainter {
         break;
     }
 
+    // Two-part shadow, matching the panels.
     canvas.drawPath(
-      path.shift(Offset(0, 5 * s)),
+      path.shift(Offset(0, 6 * s)),
       Paint()
-        ..color = ValleyPalette.forestDark.withValues(alpha: 0.26)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 8 * s),
+        ..color = ValleyPalette.forestDark.withValues(alpha: 0.24)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10 * s),
     );
+
+    // Cream / pale-tint body rather than flat white.
     canvas.drawPath(
       path,
-      Paint()..color = Colors.white.withValues(alpha: 0.96),
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [colours.surfaceTop, colours.surfaceBottom],
+        ).createShader(Offset.zero & size),
     );
+
+    // Inner top highlight, clipped to the bubble.
+    canvas.save();
+    canvas.clipPath(path);
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height * 0.32),
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.white.withValues(alpha: 0.55),
+            Colors.white.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height * 0.32)),
+    );
+    canvas.restore();
+
     canvas.drawPath(
       path,
       Paint()
-        ..color = accent.withValues(alpha: 0.65)
+        ..color = colours.accent.withValues(alpha: 0.78)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3 * s,
     );
@@ -784,15 +859,45 @@ class _BubblePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _BubblePainter old) =>
-      old.tail != tail || old.accent != accent || old.scale != scale;
+      old.tail != tail ||
+      old.colours.accent != colours.accent ||
+      old.colours.surfaceTop != colours.surfaceTop ||
+      old.scale != scale;
 }
 
 // ---------------------------------------------------------------------------
 // World portal buttons (waste categories)
 // ---------------------------------------------------------------------------
 
+/// What a portal is currently doing. Every state carries a non-colour signal
+/// too — a glyph, a word or a shape — so it never depends on hue alone.
+enum PortalState {
+  /// Open and waiting.
+  idle,
+
+  /// The student's current choice.
+  selected,
+
+  /// The right portal for this item.
+  correct,
+
+  /// Not this one — gentle, never an error.
+  incorrect,
+
+  /// Temporarily unavailable (full bin, hardware fault).
+  locked,
+}
+
+extension PortalStateX on PortalState {
+  bool get isInteractive => this != PortalState.locked;
+}
+
 /// A large, colourful "world portal" tile — how the four waste categories are
-/// presented on the kiosk. Big touch target, animated hover/press lift.
+/// presented on the kiosk.
+///
+/// A portal, not a card: the icon medallion sits inside a glowing ring on a
+/// painted base, and the whole tile lifts toward the student on hover. Big touch
+/// target, and every feedback state is drawn rather than merely tinted.
 class WorldPortalButton extends StatefulWidget {
   const WorldPortalButton({
     super.key,
@@ -802,7 +907,10 @@ class WorldPortalButton extends StatefulWidget {
     this.hint,
     this.onTap,
     this.selected = false,
+    this.state = PortalState.idle,
+    this.rewardLabel,
     this.width = 168,
+    this.animate = true,
   });
 
   final String label;
@@ -810,121 +918,329 @@ class WorldPortalButton extends StatefulWidget {
   final Color colour;
   final String? hint;
   final VoidCallback? onTap;
+
+  /// Legacy flag, folded into [state].
   final bool selected;
+
+  final PortalState state;
+
+  /// Shown rising out of the portal on a correct sort ("+10 XP").
+  final String? rewardLabel;
+
   final double width;
+  final bool animate;
+
+  PortalState get effectiveState =>
+      state == PortalState.idle && selected ? PortalState.selected : state;
 
   @override
   State<WorldPortalButton> createState() => _WorldPortalButtonState();
 }
 
-class _WorldPortalButtonState extends State<WorldPortalButton> {
+class _WorldPortalButtonState extends State<WorldPortalButton>
+    with TickerProviderStateMixin {
   bool _hover = false;
   bool _down = false;
+  bool _focus = false;
+
+  /// One-shot celebration: expanding ring, leaf burst, rising reward label.
+  late final AnimationController _cheer = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  );
+
+  /// One-shot "not this one": a single damped sway. Never a harsh shake.
+  late final AnimationController _nudge = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 520),
+  );
+
+  @override
+  void didUpdateWidget(covariant WorldPortalButton old) {
+    super.didUpdateWidget(old);
+    final now = widget.effectiveState;
+    if (now == old.effectiveState) return;
+    if (now == PortalState.correct) {
+      widget.animate ? _cheer.forward(from: 0) : _cheer.value = 1;
+    } else if (now == PortalState.incorrect) {
+      widget.animate ? _nudge.forward(from: 0) : _nudge.value = 1;
+    } else {
+      _cheer.value = 0;
+      _nudge.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _cheer.dispose();
+    _nudge.dispose();
+    super.dispose();
+  }
+
+  /// The colour the portal actually paints in. Feedback overrides the category
+  /// colour, and a locked portal drains toward stone.
+  Color get _colour => switch (widget.effectiveState) {
+    PortalState.correct => AppColors.success,
+    PortalState.incorrect => const Color(0xFFE8935A),
+    PortalState.locked => Color.lerp(widget.colour, const Color(0xFF9AA79E), 0.7)!,
+    _ => widget.colour,
+  };
+
+  /// The badge drawn in the corner. This is the non-colour signal.
+  IconData? get _stateGlyph => switch (widget.effectiveState) {
+    PortalState.correct => Icons.check_rounded,
+    PortalState.incorrect => Icons.lightbulb_outline_rounded,
+    PortalState.locked => Icons.lock_outline_rounded,
+    PortalState.selected => Icons.adjust_rounded,
+    PortalState.idle => null,
+  };
+
+  String get _semanticSuffix => switch (widget.effectiveState) {
+    PortalState.correct => ' Correct portal.',
+    PortalState.incorrect => ' Not this portal — try another.',
+    PortalState.locked => ' Currently unavailable.',
+    PortalState.selected => ' Selected.',
+    PortalState.idle => '',
+  };
 
   @override
   Widget build(BuildContext context) {
     final s = context.gameScale;
-    final lifted = _hover || widget.selected;
-    final light = Color.lerp(widget.colour, Colors.white, 0.82)!;
+    final st = widget.effectiveState;
+    final enabled = widget.onTap != null && st.isInteractive;
+    final lifted = (_hover || _focus) && enabled;
+    final emphasised =
+        lifted || st == PortalState.selected || st == PortalState.correct;
+    final colour = _colour;
+    final light = Color.lerp(colour, Colors.white, 0.86)!;
+    final radius = BorderRadius.circular(ValleyTokens.radiusPanel * s);
 
     return Semantics(
       button: true,
-      selected: widget.selected,
-      label: widget.hint == null
-          ? '${widget.label} bin'
-          : '${widget.label} bin. ${widget.hint}',
+      selected: st == PortalState.selected,
+      enabled: enabled,
+      label:
+          '${widget.label} portal.'
+          '${widget.hint == null ? '' : ' ${widget.hint}.'}'
+          '$_semanticSuffix',
+      excludeSemantics: true,
       child: MouseRegion(
-        cursor: widget.onTap == null
-            ? MouseCursor.defer
-            : SystemMouseCursors.click,
+        cursor: enabled ? SystemMouseCursors.click : MouseCursor.defer,
         onEnter: (_) => setState(() => _hover = true),
         onExit: (_) => setState(() => _hover = false),
-        child: GestureDetector(
-          onTapDown: (_) => setState(() => _down = true),
-          onTapUp: (_) => setState(() => _down = false),
-          onTapCancel: () => setState(() => _down = false),
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            curve: Curves.easeOut,
-            width: widget.width * s,
-            transform: Matrix4.translationValues(
-              0,
-              _down ? 3 * s : (lifted ? -5 * s : 0),
-              0,
+        child: FocusableActionDetector(
+          enabled: enabled,
+          onShowFocusHighlight: (v) => setState(() => _focus = v),
+          shortcuts: const <ShortcutActivator, Intent>{
+            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+          },
+          actions: <Type, Action<Intent>>{
+            ActivateIntent: CallbackAction<ActivateIntent>(
+              onInvoke: (_) {
+                widget.onTap?.call();
+                return null;
+              },
             ),
-            padding: EdgeInsets.symmetric(horizontal: 10 * s, vertical: 12 * s),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Colors.white, light],
-              ),
-              borderRadius: BorderRadius.circular(22 * s),
-              border: Border.all(
-                color: widget.colour.withValues(alpha: lifted ? 1.0 : 0.55),
-                width: (widget.selected ? 4 : 3) * s,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.colour.withValues(alpha: lifted ? 0.45 : 0.24),
-                  blurRadius: (lifted ? 20 : 12) * s,
-                  offset: Offset(0, (lifted ? 9 : 5) * s),
+          },
+          child: GestureDetector(
+            onTapDown: (_) => setState(() => _down = true),
+            onTapUp: (_) => setState(() => _down = false),
+            onTapCancel: () => setState(() => _down = false),
+            onTap: enabled ? widget.onTap : null,
+            child: AnimatedBuilder(
+              animation: Listenable.merge([_cheer, _nudge]),
+              builder: (context, child) {
+                // A single damped sway for "not this one" — the whole point is
+                // that it reads as a shrug, not an alarm.
+                final n = _nudge.value;
+                final sway = n > 0 && n < 1
+                    ? math.sin(n * math.pi * 3) * (1 - n) * 5 * s
+                    : 0.0;
+                return Transform.translate(
+                  offset: Offset(sway, 0),
+                  child: child,
+                );
+              },
+              child: AnimatedContainer(
+                duration: ValleyTokens.fast,
+                curve: Curves.easeOut,
+                width: widget.width * s,
+                transform: Matrix4.translationValues(
+                  0,
+                  _down ? 3 * s : (lifted ? -6 * s : 0),
+                  0,
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 46 * s,
-                  height: 46 * s,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Color.lerp(widget.colour, Colors.white, 0.35)!,
-                        widget.colour,
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.colour.withValues(alpha: 0.5),
-                        blurRadius: 10 * s,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [const Color(0xFFFDFEFA), light],
+                  ),
+                  borderRadius: radius,
+                  border: Border.all(
+                    color: _focus
+                        ? Color.lerp(colour, Colors.black, 0.25)!
+                        : colour.withValues(alpha: emphasised ? 1 : 0.55),
+                    width: (_focus ? 4 : (emphasised ? 3.6 : 2.8)) * s,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: colour.withValues(
+                        alpha: emphasised ? 0.45 : 0.22,
                       ),
+                      blurRadius: (emphasised ? 22 : 12) * s,
+                      offset: Offset(0, (emphasised ? 10 : 5) * s),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: radius,
+                  child: Stack(
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 9 * s,
+                          vertical: 11 * s,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // The portal itself: a base ring with the medallion
+                            // floating in it.
+                            SizedBox(
+                              width: 60 * s,
+                              height: 52 * s,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Positioned.fill(
+                                    child: RepaintBoundary(
+                                      child: AnimatedBuilder(
+                                        animation: _cheer,
+                                        builder: (context, _) => CustomPaint(
+                                          painter: _PortalRingPainter(
+                                            colour: colour,
+                                            glow: emphasised ? 1 : 0.55,
+                                            cheer:
+                                                st == PortalState.correct
+                                                ? _cheer.value
+                                                : 0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  AnimatedScale(
+                                    duration: ValleyTokens.fast,
+                                    scale: lifted ? 1.06 : 1,
+                                    child: ValleyIconMedallion(
+                                      icon: widget.icon,
+                                      accent: colour,
+                                      size: 42,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 6 * s),
+                            Text(
+                              widget.label,
+                              textAlign: TextAlign.center,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: valleyLegible(15, s, 13) * s,
+                                fontWeight: FontWeight.w900,
+                                height: 1.1,
+                                letterSpacing: -0.2 * s,
+                                color: Color.lerp(colour, Colors.black, 0.46),
+                              ),
+                            ),
+                            if (widget.hint != null) ...[
+                              SizedBox(height: 1 * s),
+                              Text(
+                                widget.hint!,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: valleyLegible(10.5, s, 9.5) * s,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.15,
+                                  color: AppColors.inkMuted,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      // State badge — the signal that is not colour.
+                      if (_stateGlyph != null)
+                        Positioned(
+                          top: 5 * s,
+                          right: 5 * s,
+                          child: Container(
+                            width: 19 * s,
+                            height: 19 * s,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: colour,
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                width: 1.6 * s,
+                              ),
+                            ),
+                            child: Icon(
+                              _stateGlyph,
+                              size: 11 * s,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+
+                      // The reward rising out of a correct portal.
+                      if (widget.rewardLabel != null &&
+                          st == PortalState.correct)
+                        Positioned.fill(
+                          child: IgnorePointer(
+                            child: AnimatedBuilder(
+                              animation: _cheer,
+                              builder: (context, _) {
+                                final t = _cheer.value;
+                                if (t <= 0 || t >= 1) {
+                                  return const SizedBox.shrink();
+                                }
+                                final rise = Curves.easeOut.transform(t);
+                                return Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Transform.translate(
+                                    offset: Offset(0, (1 - rise) * 26 * s),
+                                    child: Opacity(
+                                      opacity: (1 - t * t).clamp(0.0, 1.0),
+                                      child: Padding(
+                                        padding: EdgeInsets.only(top: 4 * s),
+                                        child: ValleyBadge(
+                                          label: widget.rewardLabel!,
+                                          icon: Icons.auto_awesome,
+                                          accent: AppColors.coinGold,
+                                          filled: true,
+                                          dense: true,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
                     ],
                   ),
-                  child: Icon(widget.icon, size: 25 * s, color: Colors.white),
                 ),
-                SizedBox(height: 7 * s),
-                Text(
-                  widget.label,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15 * s,
-                    fontWeight: FontWeight.w900,
-                    height: 1.1,
-                    color: Color.lerp(widget.colour, Colors.black, 0.42),
-                  ),
-                ),
-                if (widget.hint != null) ...[
-                  SizedBox(height: 2 * s),
-                  Text(
-                    widget.hint!,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 10.5 * s,
-                      fontWeight: FontWeight.w600,
-                      height: 1.1,
-                      color: AppColors.inkMuted,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         ),
@@ -933,11 +1249,96 @@ class _WorldPortalButtonState extends State<WorldPortalButton> {
   }
 }
 
+/// The portal's base ring and glow, plus the leaf burst on a correct sort.
+class _PortalRingPainter extends CustomPainter {
+  const _PortalRingPainter({
+    required this.colour,
+    required this.glow,
+    required this.cheer,
+  });
+
+  final Color colour;
+
+  /// 0..1 emphasis.
+  final double glow;
+
+  /// 0..1 one-shot celebration; 0 draws nothing extra.
+  final double cheer;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width * 0.5, size.height * 0.56);
+    final rx = size.width * 0.46;
+    final ry = size.height * 0.30;
+
+    // The portal mouth: a soft elliptical well the medallion sits in.
+    canvas.drawOval(
+      Rect.fromCenter(center: c, width: rx * 2, height: ry * 2),
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            colour.withValues(alpha: 0.34 * glow),
+            colour.withValues(alpha: 0.06 * glow),
+            colour.withValues(alpha: 0),
+          ],
+          stops: const [0, 0.62, 1],
+        ).createShader(
+          Rect.fromCenter(center: c, width: rx * 2, height: ry * 2),
+        ),
+    );
+
+    // Its rim.
+    canvas.drawOval(
+      Rect.fromCenter(center: c, width: rx * 1.72, height: ry * 1.62),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.2, size.width * 0.028)
+        ..color = colour.withValues(alpha: 0.34 + 0.28 * glow),
+    );
+
+    if (cheer <= 0 || cheer >= 1) return;
+
+    // Expanding confirmation ring.
+    final t = Curves.easeOut.transform(cheer);
+    canvas.drawCircle(
+      c,
+      size.width * (0.30 + 0.42 * t),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = math.max(1.5, size.width * 0.05 * (1 - t))
+        ..color = AppColors.coinGold.withValues(alpha: (1 - t) * 0.9),
+    );
+
+    // Leaf burst.
+    for (var i = 0; i < 6; i++) {
+      final a = i * math.pi * 2 / 6 - 0.5;
+      final d = size.width * (0.22 + 0.44 * t);
+      final p = c + Offset(math.cos(a) * d, math.sin(a) * d * 0.7);
+      final r = size.width * 0.07 * (1 - t * 0.6);
+      canvas.save();
+      canvas.translate(p.dx, p.dy);
+      canvas.rotate(a + t * 2);
+      canvas.drawPath(
+        Path()
+          ..moveTo(0, -r)
+          ..quadraticBezierTo(r, 0, 0, r)
+          ..quadraticBezierTo(-r, 0, 0, -r),
+        Paint()..color = AppColors.guardianLeaf.withValues(alpha: 1 - t),
+      );
+      canvas.restore();
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PortalRingPainter old) =>
+      old.colour != colour || old.glow != glow || old.cheer != cheer;
+}
+
 // ---------------------------------------------------------------------------
-// Impact / goal rows
+// Impact rows
 // ---------------------------------------------------------------------------
 
-/// One line of the impact panel: icon + value + caption.
+/// One line of the impact panel: medallion + value + caption.
 class ImpactRow extends StatelessWidget {
   const ImpactRow({
     super.key,
@@ -945,6 +1346,9 @@ class ImpactRow extends StatelessWidget {
     required this.value,
     required this.caption,
     required this.accent,
+    this.count,
+    this.suffix = '',
+    this.cheer,
   });
 
   final IconData icon;
@@ -952,52 +1356,21 @@ class ImpactRow extends StatelessWidget {
   final String caption;
   final Color accent;
 
+  /// When the value is a plain integer, pass it here too so it counts up.
+  final int? count;
+  final String suffix;
+
+  /// Short positive microcopy under the caption.
+  final String? cheer;
+
   @override
-  Widget build(BuildContext context) {
-    final s = context.gameScale;
-    return Row(
-      children: [
-        Container(
-          width: 32 * s,
-          height: 32 * s,
-          decoration: BoxDecoration(
-            color: accent.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(10 * s),
-          ),
-          child: Icon(icon, size: 18 * s, color: accent),
-        ),
-        SizedBox(width: 9 * s),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 18 * s,
-                  fontWeight: FontWeight.w900,
-                  height: 1.1,
-                  color: Color.lerp(accent, Colors.black, 0.28),
-                ),
-              ),
-              Text(
-                caption,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 11 * s,
-                  fontWeight: FontWeight.w600,
-                  height: 1.2,
-                  color: AppColors.inkMuted,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => ValleyImpactStat(
+    icon: icon,
+    value: value,
+    count: count,
+    suffix: suffix,
+    caption: caption,
+    accent: accent,
+    cheer: cheer,
+  );
 }

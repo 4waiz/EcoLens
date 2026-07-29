@@ -6,24 +6,30 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_config.dart';
 import '../../core/constants/app_routes.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/valley_tokens.dart';
 import '../../shared/components/ecolens_logo.dart';
 import '../../shared/components/game_ui.dart';
 import '../../shared/components/guardian_valley.dart';
+import '../../shared/components/valley_ui.dart';
 import '../../shared/painters/valley_painters.dart';
 import '../../shared/world/guardian_emotion.dart';
 import '../../shared/world/guardian_mascot.dart';
 
-/// A demo launcher that routes into each EcoLens experience.
+/// The front door to Guardian Valley — a map of places you can travel to.
 ///
-/// In a real deployment each device would boot straight into ONE surface (a
-/// kiosk boots to /kiosk in locked full-screen; staff open a dashboard URL).
-/// This picker exists purely so all four experiences are reachable from one
-/// build during development and demos — so it doubles as the front door to
-/// Guardian Valley.
+/// In a real deployment each device boots straight into ONE surface (a kiosk
+/// boots to /kiosk in locked full-screen; staff open a dashboard URL). This
+/// picker exists so all four experiences are reachable from one build during
+/// development and demos, which makes it the first thing anyone sees — so it is
+/// dressed as part of the game rather than as a launcher.
+///
+/// The four destinations keep the names adults need ("Teacher Dashboard") and
+/// gain the action language a child understands ("View Class Quest"). Routing
+/// and permissions are unchanged.
 ///
 /// Layout note: every card sizes to its content ([MainAxisSize.min] + capped,
-/// ellipsised text) and the whole page scrolls, so the picker cannot overflow
-/// at any window size.
+/// ellipsised text) and the whole page scrolls, so the picker cannot overflow at
+/// any window size.
 class LandingScreen extends StatelessWidget {
   const LandingScreen({super.key});
 
@@ -56,23 +62,34 @@ class LandingScreen extends StatelessWidget {
                           _BrandCapsule(scale: s),
                           SizedBox(height: 14 * s),
 
-                          // The Guardian introduces the valley. No fixed height —
-                          // the row grows with whichever side is taller.
+                          // The Guardian invites you in. No fixed height — the
+                          // row grows with whichever side is taller.
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Flexible(
-                                child: GuardianSpeechBubble(
-                                  headline: 'Choose an experience',
-                                  text:
-                                      'Students are identified only by their '
-                                      'physical Student ID card — no phones.',
-                                  tail: SpeechTail.right,
-                                  maxWidth: 380,
+                                child: Padding(
+                                  // Nudged down so the bubble's tail lands on
+                                  // Sprout's head rather than its tail.
+                                  padding: EdgeInsets.only(top: 26 * s),
+                                  child: GuardianSpeechBubble(
+                                    headline: 'Where are we exploring today?',
+                                    text:
+                                        'Students enter Guardian Valley with '
+                                        'their school ID card.',
+                                    tail: SpeechTail.right,
+                                    theme: ValleyTheme.forest,
+                                    maxWidth: 400,
+                                    footer: const ValleyBadge(
+                                      label: 'No phone needed',
+                                      icon: Icons.contactless_outlined,
+                                      accent: AppColors.primary,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              SizedBox(width: 12 * s),
+                              SizedBox(width: 10 * s),
                               GuardianPortrait(
                                 size: 180 * s,
                                 emotion: GuardianEmotion.welcome,
@@ -87,32 +104,36 @@ class LandingScreen extends StatelessWidget {
                             runSpacing: 16 * s,
                             alignment: WrapAlignment.center,
                             children: [
-                              _ExperienceCard(
+                              ValleyDestinationCard(
                                 title: 'Recycling Kiosk',
                                 subtitle: 'The student touchscreen on the bin',
+                                action: 'Enter Kiosk',
                                 icon: Icons.recycling,
-                                accent: AppColors.primary,
+                                theme: ValleyTheme.forest,
                                 onTap: () => context.go(AppRoutes.kiosk),
                               ),
-                              _ExperienceCard(
+                              ValleyDestinationCard(
                                 title: 'Teacher Dashboard',
                                 subtitle: 'Class analytics & learning insights',
+                                action: 'View Class Quest',
                                 icon: Icons.insights_outlined,
-                                accent: AppColors.info,
+                                theme: ValleyTheme.adventure,
                                 onTap: () => context.go(AppRoutes.teacherLogin),
                               ),
-                              _ExperienceCard(
+                              ValleyDestinationCard(
                                 title: 'Admin Dashboard',
                                 subtitle: 'Students, devices, rules & rewards',
+                                action: 'Manage Valley',
                                 icon: Icons.admin_panel_settings_outlined,
-                                accent: AppColors.xpPurple,
+                                theme: ValleyTheme.arcane,
                                 onTap: () => context.go(AppRoutes.adminLogin),
                               ),
-                              _ExperienceCard(
+                              ValleyDestinationCard(
                                 title: 'Canteen Terminal',
                                 subtitle: 'Redeem rewards with the ID card',
+                                action: 'Open Reward Shop',
                                 icon: Icons.storefront_outlined,
-                                accent: AppColors.coinGoldDark,
+                                theme: ValleyTheme.treasure,
                                 onTap: () => context.go(AppRoutes.canteenLogin),
                               ),
                             ],
@@ -120,26 +141,13 @@ class LandingScreen extends StatelessWidget {
                           SizedBox(height: 18 * s),
 
                           if (AppConfig.devPanelEnabled)
-                            TextButton.icon(
+                            ValleyActionButton(
+                              label: 'Developer / Hardware Simulator',
+                              icon: Icons.developer_mode,
+                              theme: ValleyTheme.tide,
+                              filled: false,
+                              height: 44,
                               onPressed: () => context.go(AppRoutes.dev),
-                              icon: Icon(Icons.developer_mode, size: 17 * s),
-                              label: Text(
-                                'Developer / Hardware Simulator',
-                                style: TextStyle(fontSize: 13 * s),
-                              ),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.primaryDark,
-                                backgroundColor: Colors.white.withValues(
-                                  alpha: 0.82,
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16 * s,
-                                  vertical: 8 * s,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(999),
-                                ),
-                              ),
                             ),
                           SizedBox(height: 10 * s),
                           Text(
@@ -186,144 +194,19 @@ class _BrandCapsule extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 22 * s, vertical: 12 * s),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(999),
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFFDFEFA), Color(0xFFEAF5E9)],
+        ),
+        borderRadius: BorderRadius.circular(ValleyTokens.radiusPill),
         border: Border.all(
-          color: AppColors.primary.withValues(alpha: 0.35),
+          color: AppColors.primary.withValues(alpha: 0.4),
           width: 2.5 * s,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: ValleyPalette.forestDark.withValues(alpha: 0.28),
-            blurRadius: 18 * s,
-            offset: Offset(0, 6 * s),
-          ),
-        ],
+        boxShadow: ValleyTokens.panelShadow(s),
       ),
       child: EcoLensLogo(height: 46 * s, showTagline: true),
-    );
-  }
-}
-
-class _ExperienceCard extends StatefulWidget {
-  const _ExperienceCard({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-    required this.accent,
-    required this.onTap,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-  final Color accent;
-  final VoidCallback onTap;
-
-  @override
-  State<_ExperienceCard> createState() => _ExperienceCardState();
-}
-
-class _ExperienceCardState extends State<_ExperienceCard> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final s = context.gameScale;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: Semantics(
-          button: true,
-          label: '${widget.title}. ${widget.subtitle}',
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 160),
-            curve: Curves.easeOut,
-            width: 252 * s,
-            transform: Matrix4.translationValues(0, _hover ? -6 * s : 0, 0),
-            padding: EdgeInsets.all(20 * s),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.95),
-              borderRadius: BorderRadius.circular(24 * s),
-              border: Border.all(
-                color: widget.accent.withValues(alpha: _hover ? 0.85 : 0.35),
-                width: 2.5 * s,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: widget.accent.withValues(alpha: _hover ? 0.38 : 0.20),
-                  blurRadius: (_hover ? 24 : 14) * s,
-                  offset: Offset(0, (_hover ? 10 : 6) * s),
-                ),
-              ],
-            ),
-            // MainAxisSize.min + capped lines: the card grows to fit its text
-            // instead of clipping it, so this can never overflow.
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 50 * s,
-                  height: 50 * s,
-                  decoration: BoxDecoration(
-                    color: widget.accent.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(15 * s),
-                  ),
-                  child: Icon(widget.icon, color: widget.accent, size: 27 * s),
-                ),
-                SizedBox(height: 14 * s),
-                Text(
-                  widget.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 18 * s,
-                    fontWeight: FontWeight.w900,
-                    height: 1.15,
-                    color: AppColors.ink,
-                  ),
-                ),
-                SizedBox(height: 4 * s),
-                Text(
-                  widget.subtitle,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12.5 * s,
-                    height: 1.3,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.inkMuted,
-                  ),
-                ),
-                SizedBox(height: 10 * s),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Open',
-                      style: TextStyle(
-                        fontSize: 14 * s,
-                        color: widget.accent,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    SizedBox(width: 4 * s),
-                    Icon(
-                      Icons.arrow_forward,
-                      size: 15 * s,
-                      color: widget.accent,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

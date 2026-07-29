@@ -71,8 +71,15 @@ def detect_checker(rgb: np.ndarray) -> tuple[float, float]:
 #                    border flood-fill cannot reach them. The checker is pure
 #                    grey and this content is not, so alpha is driven by
 #                    saturation plus a highlight term instead.
+#   fmt   – output container. "webp" everywhere except the clouds, whose picture
+#           lives almost entirely in the ALPHA channel (pure white drawn at
+#           partial opacity). WebP compresses alpha lossily and separately, and
+#           the artefacts showed up as faint blocking in the soft cloud edges
+#           against a flat sky — on the one plate that scrolls continuously.
+#           PNG is lossless there and worth the extra ~140 KB.
+#           Do not switch the clouds back to WebP.
 LAYERS = {
-    "guardian_valley_clouds": dict(mode="white", smooth=13),
+    "guardian_valley_clouds": dict(mode="white", smooth=13, fmt="png"),
     # The generated ripples span far more of the plate than the stream
     # actually occupies in the base art, and clipping them at runtime left a
     # hard horizontal edge across the meadow. Baking the fade into the alpha
@@ -257,6 +264,20 @@ def save_webp(img: Image.Image, path: str, quality: int) -> int:
     return os.path.getsize(path)
 
 
+def save_png(img: Image.Image, path: str) -> int:
+    """Lossless RGBA. Used only where the alpha channel carries the artwork."""
+    img.save(path, "PNG", optimize=True)
+    return os.path.getsize(path)
+
+
+def save_layer(img: Image.Image, directory: str, name: str, fmt: str) -> tuple[str, int]:
+    """Writes `name` in `fmt` and returns (filename, bytes)."""
+    filename = f"{name}.{fmt}"
+    path = os.path.join(directory, filename)
+    size = save_png(img, path) if fmt == "png" else save_webp(img, path, 92)
+    return filename, size
+
+
 def main() -> None:
     archive_originals()
 
@@ -272,19 +293,21 @@ def main() -> None:
     total_after += after
     print(f"  guardian_valley_base       {before // 1024:>5} KB -> {after // 1024:>4} KB (opaque)")
 
-    for name, cfg in LAYERS.items():
+    for name, raw_cfg in LAYERS.items():
+        cfg = dict(raw_cfg)
+        fmt = cfg.pop("fmt", "webp")
         src = source_png("backgrounds", name + ".png")
         print(f"  {name}")
         img = dematte(src, **cfg)
         alpha = np.asarray(img)[..., 3]
         clear = float((alpha < 8).mean()) * 100
         before = os.path.getsize(src)
-        after = save_webp(img, os.path.join(SRC_BG, name + ".webp"), 92)
+        filename, after = save_layer(img, SRC_BG, name, fmt)
         total_before += before
         total_after += after
         print(
             f"    {before // 1024:>5} KB -> {after // 1024:>4} KB   "
-            f"transparent area {clear:.1f}%"
+            f"transparent area {clear:.1f}%   -> {filename}"
         )
 
     print("\n-- guardian emotions --")

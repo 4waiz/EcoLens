@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/valley_tokens.dart';
 import '../../../../domain/enums/kiosk_state.dart';
 import '../../../../shared/components/game_ui.dart';
 import '../../../../shared/world/guardian_controller.dart';
@@ -11,8 +12,10 @@ import '../../../../shared/world/guardian_mascot.dart';
 import '../../../../shared/world/guardian_world.dart';
 import '../../../../shared/world/guardian_world_stage.dart';
 import '../../application/guardian_audio.dart';
-import '../../application/guardian_speech.dart';
+import '../../application/guardian_dialogue.dart';
 import '../../application/guardian_director.dart';
+import '../../application/guardian_interaction.dart';
+import '../../application/guardian_voice.dart';
 import '../../application/kiosk_controller.dart';
 import '../../application/kiosk_preferences.dart';
 import '../../application/kiosk_session_state.dart';
@@ -79,6 +82,17 @@ class KioskChrome extends ConsumerWidget {
     final director = ref.watch(guardianDirectorProvider);
     ref.listen<KioskSessionState>(kioskControllerProvider, (previous, next) {
       director.onKioskState(next);
+
+      // A touch reply is a small aside. The moment the kiosk has something more
+      // important to say — scanning, feedback, a level-up — the aside is
+      // dropped so the bubble shows the workflow line instead.
+      final interaction = ref.read(guardianInteractionProvider.notifier);
+      if (!guardianAcceptsTapIn(next.state)) interaction.clear();
+      // A fresh session: the next child starts with a Guardian that has never
+      // been poked, and no cooldown inherited from the last one.
+      if (next.state == KioskState.idle && !next.hasStudent) {
+        interaction.reset();
+      }
     });
     // The listener above only fires on change, so seed the director with the
     // state this frame is already rendering — after the frame, never during it.
@@ -88,6 +102,9 @@ class KioskChrome extends ConsumerWidget {
     // Keeps the Guardian's cue stream connected to sound for this session.
     // Watched so the bridge lives as long as the kiosk surface does.
     ref.watch(guardianAudioBridgeProvider);
+    // …and its dialogue connected to its voice. Disposing with the kiosk is
+    // what stops a sentence carrying on over the next route.
+    ref.watch(guardianVoiceBridgeProvider);
 
     final mode = resolveWorldRenderMode(
       preference: ref.watch(worldRenderPreferenceProvider),
@@ -97,7 +114,9 @@ class KioskChrome extends ConsumerWidget {
     final surface = MediaQuery.sizeOf(context);
     final compact = surface.width < 1100;
     final guardian = ref.watch(guardianControllerProvider);
+    final interaction = ref.watch(guardianInteractionProvider);
     final showGuardian = _guardianStates.contains(session.state);
+    final tapWelcome = guardianAcceptsTapIn(session.state);
     // The world stage sits outside GameStage, so give it the same scale by
     // hand — otherwise the speech bubble would ignore the bigger-text setting.
     final stageScale = GameStage.scaleFor(surface, boost: prefs.textScaleBoost);
@@ -120,21 +139,36 @@ class KioskChrome extends ConsumerWidget {
                   emotion: guardian.emotion,
                   sequence: guardian.sequence,
                   animate: !prefs.reduceMotion,
+                  tapMotion: interaction.reply?.motion,
+                  tapSequence: interaction.taps,
+                  tapEnabled: tapWelcome,
                   fallbackStage: avatar?.stage ?? 2,
                   semanticLabel:
-                      '${avatar?.name ?? 'Sprout'}, your EcoLens '
-                      'Guardian. ${guardian.emotion.name}',
-                  onTap: session.hasStudent
-                      ? ref
-                            .read(kioskControllerProvider.notifier)
-                            .viewGuardianEvolution
-                      : null,
+                      '${avatar?.name ?? 'Sprout'} the Guardian. '
+                      '${guardian.emotion.name}',
+                  semanticHint: tapWelcome
+                      ? 'Activate to hear a tip.'
+                      : 'Busy right now.',
+                  // Always wired: the interaction controller — not the widget —
+                  // decides whether a tap is welcome, so the Guardian stays
+                  // focusable and announced even while the kiosk is busy.
+                  onTap: () {
+                    final accepted = ref
+                        .read(guardianInteractionProvider.notifier)
+                        .tap(
+                          kioskState: session.state,
+                          hasStudent: session.hasStudent,
+                        );
+                    // A touch confirmation, honoured only when sound is on.
+                    if (accepted) {
+                      ref.read(kioskPreferencesProvider.notifier).click();
+                    }
+                  },
                 ),
                 speechBuilder: (context, maxWidth) => _GuardianSpeech(
-                  emotion: guardian.emotion,
-                  session: session,
                   maxWidth: maxWidth,
                   animate: !prefs.reduceMotion,
+                  soundEnabled: prefs.soundEnabled,
                 ),
               ),
             ),
@@ -254,55 +288,52 @@ class KioskButton extends StatelessWidget {
 /// Convenience for showing the demo AppConfig env tag on kiosk (debug only).
 bool get kioskDevAccessEnabled => AppConfig.devPanelEnabled;
 
-/// The Guardian's speech bubble, fed by the emotion and the live session.
+/// The Guardian's dialogue bubble, fed by [guardianDialogueProvider].
 ///
-/// All wording comes from [GuardianSpeech] so it can be reviewed (and later
-/// localised) in one place, and student data is interpolated rather than
-/// hardcoded anywhere near a screen.
-class _GuardianSpeech extends StatelessWidget {
+/// It reads the SAME event the voice speaks, so what is written and what is
+/// heard can never drift apart. All wording comes from `GuardianSpeech` (or the
+/// tap-reply pool) so it can be reviewed — and later localised — in one place,
+/// and student data is interpolated rather than hardcoded near a screen.
+class _GuardianSpeech extends ConsumerWidget {
   const _GuardianSpeech({
-    required this.emotion,
-    required this.session,
     required this.maxWidth,
     required this.animate,
+    required this.soundEnabled,
   });
 
-  final GuardianEmotion emotion;
-  final KioskSessionState session;
   final double maxWidth;
   final bool animate;
+  final bool soundEnabled;
 
   @override
-  Widget build(BuildContext context) {
-    final student = session.student;
-    final outcome = session.lastOutcome;
-    final line = GuardianSpeech.forEmotion(
-      emotion,
-      firstName: student?.firstName,
-      guardianName: session.avatar?.name,
-      houseName: session.house?.name,
-      category: outcome?.correctCategory ?? session.routedCategory,
-      level: session.avatar?.level,
-      itemsToday: session.itemsThisSession > 0
-          ? session.itemsThisSession
-          : null,
-    );
+  Widget build(BuildContext context, WidgetRef ref) {
+    final dialogue = ref.watch(guardianDialogueProvider);
+    final voice = ref.watch(guardianVoiceProvider);
+
+    // The replay control only appears when it would actually do something: a
+    // speech engine exists AND the kiosk is not muted.
+    final canReplay = voice.isAvailable && soundEnabled;
 
     return GuardianSpeechBubble(
-      headline: line.headline,
-      text: line.text,
+      headline: dialogue.headline,
+      text: dialogue.text,
       maxWidth: maxWidth / context.gameScale,
       animate: animate,
-      accent: _accentFor(emotion),
+      theme: dialogue.isTapReply
+          ? ValleyTheme.forest
+          : themeFor(dialogue.emotion),
+      onReplay: canReplay ? voice.replay : null,
+      speaking: canReplay ? voice.speaking : null,
     );
   }
 
-  static Color _accentFor(GuardianEmotion emotion) => switch (emotion) {
-    GuardianEmotion.correct => AppColors.success,
-    GuardianEmotion.celebrate ||
-    GuardianEmotion.levelUp => AppColors.coinGoldDark,
-    GuardianEmotion.tryAgain || GuardianEmotion.encourage => AppColors.warning,
-    GuardianEmotion.thinking => AppColors.info,
-    _ => AppColors.primary,
+  /// The bubble's mood per expression. Exposed for tests.
+  static ValleyTheme themeFor(GuardianEmotion emotion) => switch (emotion) {
+    GuardianEmotion.correct => ValleyTheme.bloom,
+    GuardianEmotion.celebrate => ValleyTheme.treasure,
+    GuardianEmotion.levelUp => ValleyTheme.arcane,
+    GuardianEmotion.tryAgain || GuardianEmotion.encourage => ValleyTheme.ember,
+    GuardianEmotion.thinking => ValleyTheme.adventure,
+    _ => ValleyTheme.forest,
   };
 }

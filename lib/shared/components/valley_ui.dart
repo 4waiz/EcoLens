@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/valley_tokens.dart';
 import '../painters/valley_painters.dart';
-import 'game_ui.dart';
+import 'game_scale.dart';
 
 /// ---------------------------------------------------------------------------
 /// The Guardian Valley UI kit.
@@ -1330,10 +1330,15 @@ class ValleyGamePanel extends StatelessWidget {
     this.compact = false,
     this.animate = true,
     this.decorate = true,
+    this.colours,
   });
 
   final Widget child;
   final ValleyTheme theme;
+
+  /// Overrides [theme] when the colour is data rather than a design choice —
+  /// see [ValleyThemeColours.fromAccent].
+  final ValleyThemeColours? colours;
 
   /// Upper-cased into the header band. Omit for a band-less surface.
   final String? title;
@@ -1359,7 +1364,7 @@ class ValleyGamePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.gameScale;
-    final c = theme.colours;
+    final c = colours ?? theme.colours;
     final border = ValleyTokens.borderPanel * s;
     final outer = BorderRadius.circular(ValleyTokens.radiusPanel * s);
     final inner = BorderRadius.circular(
@@ -1399,6 +1404,7 @@ class ValleyGamePanel extends StatelessWidget {
                     title: title!,
                     icon: icon,
                     theme: theme,
+                    colours: colours,
                     trailing: trailing,
                     compact: compact,
                   ),
@@ -1453,6 +1459,7 @@ class ValleyPanelHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.theme = ValleyTheme.forest,
+    this.colours,
     this.icon,
     this.trailing,
     this.compact = false,
@@ -1460,6 +1467,7 @@ class ValleyPanelHeader extends StatelessWidget {
 
   final String title;
   final ValleyTheme theme;
+  final ValleyThemeColours? colours;
   final IconData? icon;
   final Widget? trailing;
   final bool compact;
@@ -1467,7 +1475,7 @@ class ValleyPanelHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = context.gameScale;
-    final c = theme.colours;
+    final c = colours ?? theme.colours;
     final h =
         (compact
             ? ValleyTokens.headerHeightCompact

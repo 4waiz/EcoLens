@@ -291,6 +291,117 @@ extension GuardianEmotionX on GuardianEmotion {
   };
 }
 
+/// ---------------------------------------------------------------------------
+/// A short, playful reaction to being touched.
+///
+/// These are **motion profiles layered over whatever expression is already on
+/// screen**, not a new set of frames. That is the whole design: a tap can never
+/// change the Guardian's face, so it can never contradict the workflow, and
+/// when the wiggle finishes there is nothing to restore — the emotion never
+/// left.
+/// ---------------------------------------------------------------------------
+enum GuardianTapMotion {
+  /// A two-beat hop on the spot.
+  jump,
+
+  /// Leans and rocks, like a wave from the shoulder.
+  wave,
+
+  /// A gentle quarter-turn and back. Never a full spin.
+  spin,
+
+  /// A quick tail-wiggle shimmy.
+  wiggle,
+
+  /// Wing flap with a small leaf burst.
+  flap,
+}
+
+/// How one [GuardianTapMotion] moves. Amplitudes are fractions of the
+/// Guardian's rendered height (or radians, for rotation).
+@immutable
+class GuardianTapProfile {
+  const GuardianTapProfile({
+    required this.duration,
+    this.hop = 0,
+    this.hops = 1,
+    this.spin = 0,
+    this.sway = 0,
+    this.tilt = 0,
+    this.squash = 0,
+    this.sparkle = false,
+  });
+
+  final Duration duration;
+
+  /// Peak hop height, as a fraction of height.
+  final double hop;
+
+  /// How many hops the reaction plays.
+  final int hops;
+
+  /// Peak rotation, in radians. Deliberately small: a mascot that spins on the
+  /// spot stops looking like it lives in the world.
+  final double spin;
+
+  /// Peak side-to-side rock, in radians.
+  final double sway;
+
+  /// A static lean held through the middle of the reaction, in radians.
+  final double tilt;
+
+  /// Peak vertical squash/stretch, as a fraction of scale.
+  final double squash;
+
+  /// Whether the reaction throws a short leaf burst.
+  final bool sparkle;
+}
+
+extension GuardianTapMotionX on GuardianTapMotion {
+  GuardianTapProfile get profile => switch (this) {
+    GuardianTapMotion.jump => const GuardianTapProfile(
+      duration: Duration(milliseconds: 760),
+      hop: 0.13,
+      hops: 2,
+      squash: 0.05,
+    ),
+    GuardianTapMotion.wave => const GuardianTapProfile(
+      duration: Duration(milliseconds: 900),
+      hop: 0.02,
+      sway: 0.10,
+      tilt: 0.05,
+    ),
+    GuardianTapMotion.spin => const GuardianTapProfile(
+      duration: Duration(milliseconds: 820),
+      hop: 0.08,
+      spin: 0.52,
+      squash: 0.03,
+    ),
+    GuardianTapMotion.wiggle => const GuardianTapProfile(
+      duration: Duration(milliseconds: 780),
+      hop: 0.03,
+      hops: 3,
+      sway: 0.13,
+    ),
+    GuardianTapMotion.flap => const GuardianTapProfile(
+      duration: Duration(milliseconds: 720),
+      hop: 0.06,
+      hops: 3,
+      squash: 0.07,
+      sparkle: true,
+    ),
+  };
+
+  /// A friendly name for logs and the dev panel.
+  String get label => switch (this) {
+    GuardianTapMotion.jump => 'jump',
+    GuardianTapMotion.wave => 'wave',
+    GuardianTapMotion.spin => 'spin',
+    GuardianTapMotion.wiggle => 'wiggle',
+    GuardianTapMotion.flap => 'wing flap',
+  };
+}
+
 /// Abstract sound events. The kiosk maps these onto whatever audio (or haptic)
 /// backend is configured; missing audio must never break the flow.
 enum GuardianSoundCue {

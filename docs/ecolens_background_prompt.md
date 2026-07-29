@@ -191,7 +191,7 @@ Bundled (`assets/`, listed in `pubspec.yaml`):
 | Asset | Size | Notes |
 |---|---|---|
 | `backgrounds/guardian_valley_base.webp` | 212 KB | Opaque. The valley itself. |
-| `backgrounds/guardian_valley_clouds.webp` | 114 KB | Transparent. Pure white clouds. |
+| `backgrounds/guardian_valley_clouds.png` | 251 KB | Transparent. Pure white clouds. **PNG, not WebP** — see below. |
 | `backgrounds/guardian_valley_water.webp` | 104 KB | Transparent. Stream shimmer, fade baked in. |
 | `backgrounds/guardian_valley_particles.webp` | 89 KB | Transparent. Soft light and dust. |
 | `backgrounds/guardian_valley_foreground.webp` | 74 KB | Transparent. Grass and flowers. |
@@ -201,6 +201,52 @@ All plates are normalised to **1376 × 768**. Masters live in `art_source/`
 (gitignored, not bundled) and are never modified in place.
 
 **15.4 MB of PNG → 2.4 MB of WebP (84 % smaller.)**
+
+### Why the cloud plate is a PNG
+
+Every other layer is WebP. The clouds are the exception, and the reason is the
+alpha channel.
+
+The base, water, particle and foreground plates all carry most of their picture
+in *RGB*; alpha only cuts them out. The clouds are the opposite: they are pure
+white (`#FFFFFF`) drawn at partial opacity across their whole extent, so the
+**alpha channel _is_ the artwork**. WebP's alpha is compressed separately and
+lossily, and the artefacts landed exactly where they were most visible — faint
+blocking in the soft cloud edges, against a flat sky, on a plate that scrolls
+continuously across the screen for 92 seconds at a time.
+
+PNG's alpha is lossless. It costs about 140 KB more than the WebP did, which is
+a good trade for the one plate where it matters.
+
+**Do not convert `guardian_valley_clouds.png` back to WebP.**
+`tool/prepare_art_assets.py` encodes it as PNG deliberately (`fmt="png"` in
+`LAYERS`), so re-running the pipeline preserves this.
+
+### Replacing the cloud plate
+
+1. Drop a new master at `art_source/backgrounds/guardian_valley_clouds.png`.
+   Expected size **1376 × 768**; anything else is resized with LANCZOS.
+2. Run `python tool/prepare_art_assets.py`. It reconstructs a real alpha channel
+   from the baked-in transparency checkerboard (`mode="white"`) and writes
+   `assets/backgrounds/guardian_valley_clouds.png`.
+3. `pubspec.yaml` declares the whole `assets/backgrounds/` directory, so no
+   manifest change is needed — but `flutter pub get` must be re-run so the new
+   file lands in `AssetManifest.json`.
+4. The path is spelled **once**, in
+   `GuardianWorldAssets.clouds` (`lib/shared/world/guardian_world_assets.dart`).
+   `test/widget/cloud_layer_test.dart` asserts it is a `.png` and that no
+   `.webp` cloud reference has crept back into `lib/`.
+
+**Layer placement and animation.** The clouds are plate 2 of 5, drawn directly
+over the base valley and under the water shimmer, at `opacity: 0.92` with
+`parallax: 9`. `GuardianValleyGeneratedWorld._scrollingPlate` marches them
+horizontally on a 92-second loop with a ±6 px vertical wander, using the
+mirrored three-copy strip (`A | mirrored B | A`) so the wrap lands on identical
+pixels and there is no seam. `BoxFit.cover` plus a parallax bleed of
+`parallax * 2 + 8` px means the plate always over-fills the viewport, so no
+blank edge can swing into view at any aspect ratio. In calm (reduced-motion)
+mode the march, the wander and the parallax all stop and the plate holds on one
+frame.
 
 ## The de-matte step — read this before regenerating
 
