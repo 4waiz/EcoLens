@@ -6,7 +6,8 @@ import '../../../../core/widgets/state_views.dart';
 import '../../../../domain/enums/kiosk_state.dart';
 import '../../application/kiosk_controller.dart';
 import '../widgets/kiosk_chrome.dart';
-import '../../../../shared/components/guardian_avatar.dart';
+import '../../../../shared/world/guardian_emotion.dart';
+import '../../../../shared/world/guardian_mascot.dart';
 
 /// SCREEN 10 — Reward summary (+ session complete countdown).
 ///
@@ -22,7 +23,6 @@ class KioskRewardSummaryScreen extends ConsumerWidget {
     final controller = ref.read(kioskControllerProvider.notifier);
     final student = session.student;
     final outcome = session.lastOutcome;
-    final avatar = session.avatar;
     final house = session.house;
     if (student == null || outcome == null) {
       return const LoadingView();
@@ -41,20 +41,21 @@ class KioskRewardSummaryScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  finishing ? 'See you soon! 👋' : 'Nice work, ${student.firstName}!',
-                  style: Theme.of(context)
-                      .textTheme
-                      .displaySmall
-                      ?.copyWith(color: AppColors.primaryDark),
+                  finishing
+                      ? 'See you soon! 👋'
+                      : 'Nice work, ${student.firstName}!',
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    color: AppColors.primaryDark,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   finishing
                       ? 'Your progress is saved. Signing you out to keep your account private.'
                       : "Here's what you earned this session.",
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: AppColors.inkMuted),
                 ),
                 const SizedBox(height: 24),
                 Wrap(
@@ -64,7 +65,9 @@ class KioskRewardSummaryScreen extends ConsumerWidget {
                     _SummaryStat(
                       icon: Icons.star_rounded,
                       value: '${student.totalXp}',
-                      delta: outcome.xpAwarded > 0 ? '+${outcome.xpAwarded}' : null,
+                      delta: outcome.xpAwarded > 0
+                          ? '+${outcome.xpAwarded}'
+                          : null,
                       label: 'Total XP',
                       accent: AppColors.xpPurple,
                       surface: AppColors.xpPurpleSurface,
@@ -102,7 +105,10 @@ class KioskRewardSummaryScreen extends ConsumerWidget {
                 if (house != null) _WeeklyChallengeCard(house: house),
                 const SizedBox(height: 24),
                 if (finishing)
-                  _LogoutCountdown(seconds: session.logoutCountdown, onNow: () => controller.endSession())
+                  _LogoutCountdown(
+                    seconds: session.logoutCountdown,
+                    onNow: () => controller.endSession(),
+                  )
                 else
                   Wrap(
                     spacing: 12,
@@ -143,10 +149,11 @@ class KioskRewardSummaryScreen extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                GuardianAvatar(
-                  stage: avatar?.stage ?? 1,
+                GuardianPortrait(
                   size: 300,
-                  glowing: true,
+                  emotion: outcome.stageChanged
+                      ? GuardianEmotion.levelUp
+                      : GuardianEmotion.correct,
                 ),
                 if (outcome.stageChanged && outcome.newStage != null)
                   _EvolutionBanner(title: outcome.newStage!.title),
@@ -364,10 +371,7 @@ class _LogoutCountdown extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const SizedBox(width: 16),
-        OutlinedButton(
-          onPressed: onNow,
-          child: const Text('Sign out now'),
-        ),
+        OutlinedButton(onPressed: onNow, child: const Text('Sign out now')),
       ],
     );
   }

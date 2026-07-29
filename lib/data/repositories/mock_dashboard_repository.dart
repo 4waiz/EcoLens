@@ -21,13 +21,13 @@ class MockDashboardRepository implements DashboardRepository {
   @override
   Future<TeacherOverview> getTeacherOverview({String? teacherId}) async {
     await _tick();
-    final activeStudents =
-        _db.students.where((s) => s.accountStatus == AccountStatus.active).length;
+    final activeStudents = _db.students
+        .where((s) => s.accountStatus == AccountStatus.active)
+        .length;
     final xpAwarded = _db.sessions
         .where((s) => s.wasCorrect)
         .fold<int>(0, (a, s) => a + _db.config.xpPerCorrect);
-    final housePoints =
-        _db.houses.fold<int>(0, (a, h) => a + h.weeklyPoints);
+    final housePoints = _db.houses.fold<int>(0, (a, h) => a + h.weeklyPoints);
 
     return TeacherOverview(
       activeStudents: activeStudents,
@@ -39,10 +39,30 @@ class MockDashboardRepository implements DashboardRepository {
       xpAwarded: xpAwarded,
       housePoints: housePoints,
       headlineMetrics: [
-        MetricValue(label: 'Active students', value: '$activeStudents', delta: '+2', caption: 'this week'),
-        MetricValue(label: 'Sessions', value: '$_total', delta: '+18', caption: 'this week'),
-        MetricValue(label: 'Accuracy', value: '${(_accuracy * 100).round()}%', delta: '+3%', caption: 'vs last week'),
-        MetricValue(label: 'XP awarded', value: '$xpAwarded', delta: '+120', caption: 'this week'),
+        MetricValue(
+          label: 'Active students',
+          value: '$activeStudents',
+          delta: '+2',
+          caption: 'this week',
+        ),
+        MetricValue(
+          label: 'Sessions',
+          value: '$_total',
+          delta: '+18',
+          caption: 'this week',
+        ),
+        MetricValue(
+          label: 'Accuracy',
+          value: '${(_accuracy * 100).round()}%',
+          delta: '+3%',
+          caption: 'vs last week',
+        ),
+        MetricValue(
+          label: 'XP awarded',
+          value: '$xpAwarded',
+          delta: '+120',
+          caption: 'this week',
+        ),
       ],
       participationTrend: _weeklyTrend(),
       commonMistakes: _computeCommonMistakes(),
@@ -54,8 +74,9 @@ class MockDashboardRepository implements DashboardRepository {
   @override
   Future<AdminOverview> getAdminOverview() async {
     await _tick();
-    final active =
-        _db.devices.where((d) => d.health == HealthStatus.online).length;
+    final active = _db.devices
+        .where((d) => d.health == HealthStatus.online)
+        .length;
     final attention = _db.devices
         .where(
           (d) =>
@@ -82,10 +103,28 @@ class MockDashboardRepository implements DashboardRepository {
       systemAccuracy: _accuracy,
       rewardsRedeemedToday: redeemedToday,
       headlineMetrics: [
-        MetricValue(label: 'Students', value: '${_db.students.length}', caption: 'enrolled'),
-        MetricValue(label: 'Active kiosks', value: '$active / ${_db.devices.length}', caption: 'online'),
-        MetricValue(label: 'Sessions today', value: '$sessionsToday', delta: '+12', caption: 'vs yesterday'),
-        MetricValue(label: 'System accuracy', value: '${(_accuracy * 100).round()}%', delta: '+2%', caption: 'this week'),
+        MetricValue(
+          label: 'Students',
+          value: '${_db.students.length}',
+          caption: 'enrolled',
+        ),
+        MetricValue(
+          label: 'Active kiosks',
+          value: '$active / ${_db.devices.length}',
+          caption: 'online',
+        ),
+        MetricValue(
+          label: 'Sessions today',
+          value: '$sessionsToday',
+          delta: '+12',
+          caption: 'vs yesterday',
+        ),
+        MetricValue(
+          label: 'System accuracy',
+          value: '${(_accuracy * 100).round()}%',
+          delta: '+2%',
+          caption: 'this week',
+        ),
       ],
       weeklySessions: _weeklyTrend(),
       categoryBreakdown: _categoryBreakdown(),
@@ -104,8 +143,7 @@ class MockDashboardRepository implements DashboardRepository {
 
     final perCategory = <CategoryAccuracy>[];
     for (final cat in WasteCategory.values) {
-      final attempts =
-          relevant.where((s) => s.finalCategory == cat).toList();
+      final attempts = relevant.where((s) => s.finalCategory == cat).toList();
       final correct = attempts.where((s) => s.wasCorrect).length;
       perCategory.add(
         CategoryAccuracy(
@@ -171,7 +209,8 @@ class MockDashboardRepository implements DashboardRepository {
         correctCategory: correct,
         chosenCategory: chosen,
         occurrences: (existing?.occurrences ?? 0) + 1,
-        exampleItem: s.classificationResult?.detectedObjectName ??
+        exampleItem:
+            s.classificationResult?.detectedObjectName ??
             existing?.exampleItem ??
             '',
       );
@@ -242,7 +281,8 @@ class MockDashboardRepository implements DashboardRepository {
     final base = [12, 18, 15, 22, 26, 8, 5];
     return List.generate(days.length, (i) {
       final value = scale == 100
-          ? (78 + (base[i] % 12)).toDouble() // accuracy-ish percentages
+          ? (78 + (base[i] % 12))
+                .toDouble() // accuracy-ish percentages
           : base[i].toDouble();
       return TrendPoint(label: days[i], value: value);
     });

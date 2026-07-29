@@ -110,16 +110,19 @@ class StaffLoginScaffold extends StatelessWidget {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.info_outline,
-                                    size: 18, color: AppColors.primary),
+                                const Icon(
+                                  Icons.info_outline,
+                                  size: 18,
+                                  color: AppColors.primary,
+                                ),
                                 const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     demoHint!,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.copyWith(color: AppColors.primaryDark),
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(
+                                          color: AppColors.primaryDark,
+                                        ),
                                   ),
                                 ),
                               ],

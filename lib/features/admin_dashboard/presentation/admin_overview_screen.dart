@@ -28,12 +28,12 @@ final _overviewDevicesProvider = FutureProvider.autoDispose(
 
 /// Maps a [HealthStatus] to a display colour.
 Color healthColour(HealthStatus status) => switch (status) {
-      HealthStatus.online => AppColors.success,
-      HealthStatus.degraded => AppColors.warning,
-      HealthStatus.offline => AppColors.error,
-      HealthStatus.maintenance => AppColors.info,
-      HealthStatus.unknown => AppColors.inkFaint,
-    };
+  HealthStatus.online => AppColors.success,
+  HealthStatus.degraded => AppColors.warning,
+  HealthStatus.offline => AppColors.error,
+  HealthStatus.maintenance => AppColors.info,
+  HealthStatus.unknown => AppColors.inkFaint,
+};
 
 class AdminOverviewScreen extends ConsumerWidget {
   const AdminOverviewScreen({super.key});
@@ -104,14 +104,16 @@ class _OverviewBody extends StatelessWidget {
                       const SizedBox(height: 16),
                       SizedBox(
                         height: 220,
-                        child:
-                            _WeeklySessionsChart(points: overview.weeklySessions),
+                        child: _WeeklySessionsChart(
+                          points: overview.weeklySessions,
+                        ),
                       ),
                     ],
                   ),
                 );
-                final breakdown =
-                    _CategoryBreakdownCard(items: overview.categoryBreakdown);
+                final breakdown = _CategoryBreakdownCard(
+                  items: overview.categoryBreakdown,
+                );
                 if (!wide) {
                   return Column(
                     children: [trend, const SizedBox(height: 16), breakdown],
@@ -146,9 +148,11 @@ class _WeeklySessionsChart extends StatelessWidget {
     if (points.isEmpty) {
       return const EmptyView(title: 'No activity yet');
     }
-    final maxY =
-        points.map((p) => p.value).fold<double>(0, (a, b) => b > a ? b : a);
+    final maxY = points
+        .map((p) => p.value)
+        .fold<double>(0, (a, b) => b > a ? b : a);
     return BarChart(
+      duration: Duration.zero,
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
         maxY: (maxY * 1.3).clamp(5, double.infinity),
@@ -163,10 +167,12 @@ class _WeeklySessionsChart extends StatelessWidget {
           leftTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: true, reservedSize: 30),
           ),
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -175,8 +181,10 @@ class _WeeklySessionsChart extends StatelessWidget {
                 if (i < 0 || i >= points.length) return const SizedBox.shrink();
                 return Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text(points[i].label,
-                      style: Theme.of(context).textTheme.bodySmall),
+                  child: Text(
+                    points[i].label,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 );
               },
             ),
@@ -235,7 +243,11 @@ class _CategoryBreakdownCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(c.category.icon, color: c.category.colour, size: 20),
+                        Icon(
+                          c.category.icon,
+                          color: c.category.colour,
+                          size: 20,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -337,7 +349,10 @@ class _KioskChip extends StatelessWidget {
               Container(
                 width: 10,
                 height: 10,
-                decoration: BoxDecoration(color: colour, shape: BoxShape.circle),
+                decoration: BoxDecoration(
+                  color: colour,
+                  shape: BoxShape.circle,
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(

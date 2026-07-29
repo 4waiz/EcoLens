@@ -11,7 +11,8 @@ import 'canteen_screens.dart';
 List<RouteBase> buildCanteenRoutes({
   required String? Function(dynamic, dynamic) guard,
 }) {
-  GoRouterRedirect wrap() => (context, state) => guard(context, state);
+  GoRouterRedirect wrap() =>
+      (context, state) => guard(context, state);
 
   return [
     GoRoute(

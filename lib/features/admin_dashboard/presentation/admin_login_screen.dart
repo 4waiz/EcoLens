@@ -39,11 +39,10 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
       _loading = true;
       _error = null;
     });
-    final result = await ref.read(authServiceProvider).authenticateAdmin(
-          LoginCredentials(
-            identifier: _email.text,
-            password: _password.text,
-          ),
+    final result = await ref
+        .read(authServiceProvider)
+        .authenticateAdmin(
+          LoginCredentials(identifier: _email.text, password: _password.text),
         );
     if (!mounted) return;
     result.when(
@@ -59,11 +58,13 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   Widget build(BuildContext context) {
     return StaffLoginScaffold(
       roleTitle: 'Admin Console',
-      roleSubtitle: 'Manage students, devices, rewards and the rules that power '
+      roleSubtitle:
+          'Manage students, devices, rewards and the rules that power '
           'every EcoLens kiosk.',
       accent: AppColors.xpPurple,
       heroIcon: Icons.admin_panel_settings_outlined,
-      demoHint: 'Demo account is pre-filled. Just press Sign in.\n'
+      demoHint:
+          'Demo account is pre-filled. Just press Sign in.\n'
           'Email: ${MockSeedData.adminEmail} · Password: ${MockSeedData.demoPassword}',
       form: Form(
         key: _formKey,
@@ -89,7 +90,8 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
                 prefixIcon: const Icon(Icons.lock_outline),
                 suffixIcon: IconButton(
                   icon: Icon(
-                      _obscure ? Icons.visibility : Icons.visibility_off),
+                    _obscure ? Icons.visibility : Icons.visibility_off,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
@@ -99,10 +101,7 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
             ),
             if (_error != null) ...[
               const SizedBox(height: 12),
-              Text(
-                _error!,
-                style: const TextStyle(color: AppColors.error),
-              ),
+              Text(_error!, style: const TextStyle(color: AppColors.error)),
             ],
             const SizedBox(height: 24),
             FilledButton(

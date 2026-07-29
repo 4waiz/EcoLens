@@ -18,54 +18,82 @@ class EcoLensLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = onLight ? AppColors.primaryDark : Colors.white;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _LeafLensMark(size: height),
-        SizedBox(width: height * 0.28),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+
+    // The logo is dropped into narrow nav rails, HUD capsules AND unbounded
+    // rows (e.g. inside a FittedBox). Flexing is right when there is a width to
+    // flex within; a flex child under unbounded width would assert — so the
+    // wordmark only becomes flexible once the incoming width is bounded.
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final wordmark = _wordmark(textColor);
+        return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text.rich(
-              TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Eco',
-                    style: TextStyle(
-                      fontSize: height * 0.66,
-                      fontWeight: FontWeight.w800,
-                      color: textColor,
-                      height: 1,
-                    ),
-                  ),
-                  TextSpan(
-                    text: 'Lens',
-                    style: TextStyle(
-                      fontSize: height * 0.66,
-                      fontWeight: FontWeight.w800,
-                      color: onLight ? AppColors.primaryLight : AppColors.guardianLeaf,
-                      height: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (showTagline)
-              Padding(
-                padding: EdgeInsets.only(top: height * 0.08),
-                child: Text(
-                  'Learn. Act. Earn. Save our planet.',
+            _LeafLensMark(size: height),
+            SizedBox(width: height * 0.28),
+            if (constraints.hasBoundedWidth)
+              Flexible(child: wordmark)
+            else
+              wordmark,
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _wordmark(Color textColor) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: height * 5.4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'Eco',
                   style: TextStyle(
-                    fontSize: height * 0.24,
-                    color: onLight ? AppColors.inkMuted : Colors.white70,
-                    fontWeight: FontWeight.w500,
+                    fontSize: height * 0.66,
+                    fontWeight: FontWeight.w800,
+                    color: textColor,
+                    height: 1,
                   ),
                 ),
+                TextSpan(
+                  text: 'Lens',
+                  style: TextStyle(
+                    fontSize: height * 0.66,
+                    fontWeight: FontWeight.w800,
+                    color: onLight
+                        ? AppColors.primaryLight
+                        : AppColors.guardianLeaf,
+                    height: 1,
+                  ),
+                ),
+              ],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.fade,
+            softWrap: false,
+          ),
+          if (showTagline)
+            Padding(
+              padding: EdgeInsets.only(top: height * 0.08),
+              child: Text(
+                'Learn. Act. Earn. Save our planet.',
+                maxLines: 1,
+                overflow: TextOverflow.fade,
+                softWrap: false,
+                style: TextStyle(
+                  fontSize: height * 0.24,
+                  color: onLight ? AppColors.inkMuted : Colors.white70,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-          ],
-        ),
-      ],
+            ),
+        ],
+      ),
     );
   }
 }

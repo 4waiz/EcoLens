@@ -27,10 +27,10 @@ class MockStudentRepository implements StudentRepository {
   @override
   Future<Student?> getStudentByCardUid(String cardUid) async {
     await Future<void>.delayed(AppConfig.mockNetworkDelay);
-    final card = _db.cards.where((c) => c.cardUid == cardUid).cast<StudentCard?>().firstWhere(
-          (c) => true,
-          orElse: () => null,
-        );
+    final card = _db.cards
+        .where((c) => c.cardUid == cardUid)
+        .cast<StudentCard?>()
+        .firstWhere((c) => true, orElse: () => null);
     if (card == null || !card.isUsable) return null;
     return _db.studentById(card.studentId);
   }
@@ -83,10 +83,10 @@ class MockStudentRepository implements StudentRepository {
       longestStreak: session.streakAfterSession > current.longestStreak
           ? session.streakAfterSession
           : current.longestStreak,
-      correctRecyclingCount: current.correctRecyclingCount +
-          (session.wasCorrect ? 1 : 0),
-      incorrectRecyclingCount: current.incorrectRecyclingCount +
-          (session.wasCorrect ? 0 : 1),
+      correctRecyclingCount:
+          current.correctRecyclingCount + (session.wasCorrect ? 1 : 0),
+      incorrectRecyclingCount:
+          current.incorrectRecyclingCount + (session.wasCorrect ? 0 : 1),
       dailyEarnedPoints: current.dailyEarnedPoints + session.pointsAwarded,
       lastActiveAt: session.completedAt ?? DateTime.now(),
     );

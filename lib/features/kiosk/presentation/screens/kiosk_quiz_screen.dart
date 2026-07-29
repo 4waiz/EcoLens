@@ -8,7 +8,8 @@ import '../../../../domain/enums/waste_category.dart';
 import '../../application/kiosk_controller.dart';
 import '../widgets/camera_frame.dart';
 import '../widgets/kiosk_widgets.dart';
-import '../../../../shared/components/guardian_avatar.dart';
+import '../../../../shared/world/guardian_emotion.dart';
+import '../../../../shared/world/guardian_mascot.dart';
 
 /// SCREEN 6 — Category quiz.
 ///
@@ -82,15 +83,16 @@ class KioskQuizScreen extends ConsumerWidget {
                     const SizedBox(
                       width: 72,
                       height: 72,
-                      child: GuardianAvatar(stage: 1, size: 72, bob: false),
+                      child: GuardianPortrait(
+                        size: 72,
+                        emotion: GuardianEmotion.listening,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Which bin should it go into?',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
+                        style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(color: AppColors.primaryDark),
                       ),
                     ),
@@ -104,9 +106,9 @@ class KioskQuizScreen extends ConsumerWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Tap the bin you think is correct — this helps you learn!',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: AppColors.inkMuted),
                 ),
                 const SizedBox(height: 20),
                 GridView.count(
@@ -154,8 +156,8 @@ class KioskQuizScreen extends ConsumerWidget {
     final message =
         'Which bin should the ${classification.detectedObjectName} go into? '
         'Choose plastic, paper, organic, or general waste.';
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

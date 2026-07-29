@@ -29,16 +29,16 @@ class KioskScanScreen extends ConsumerWidget {
           const SizedBox(height: 8),
           Text(
             'Show me your item',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: AppColors.primaryDark,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineMedium?.copyWith(color: AppColors.primaryDark),
           ),
           const SizedBox(height: 4),
           Text(
             'Hold the item in front of the camera, then tap Capture.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: AppColors.inkMuted,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyLarge?.copyWith(color: AppColors.inkMuted),
           ),
           const SizedBox(height: 20),
           Expanded(
@@ -84,9 +84,7 @@ class KioskScanScreen extends ConsumerWidget {
                   icon: Icons.close,
                   filled: false,
                   color: AppColors.inkMuted,
-                  onPressed: capturing
-                      ? null
-                      : controller.backFromSubScreen,
+                  onPressed: capturing ? null : controller.backFromSubScreen,
                 ),
               ],
             ),

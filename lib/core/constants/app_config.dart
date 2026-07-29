@@ -47,6 +47,13 @@ abstract final class AppConfig {
   /// Default kiosk id used by the single-kiosk demo build.
   static const String demoKioskId = 'KIOSK-OAK-01';
 
+  /// School shown on the kiosk HUD. Comes from device provisioning in a real
+  /// deployment; hardcoded for the demo build.
+  static const String demoSchoolName = 'Oakwood Elementary';
+
+  /// The name of the EcoLens world students play in.
+  static const String worldName = 'Guardian Valley';
+
   /// Simulated latencies for the mock stack (kept short for a snappy demo).
   static const Duration mockCardReadDelay = Duration(milliseconds: 1400);
   static const Duration mockCaptureDelay = Duration(milliseconds: 1100);

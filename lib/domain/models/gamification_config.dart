@@ -19,11 +19,11 @@ class GamificationConfig with _$GamificationConfig {
 
     // ---- Streak / bonus ----
     @Default(20) int bonusStreakThreshold,
-    @Default(25) int bonusPoints, // AED 5 -> 25 points at 5pts=AED1... configurable
+    @Default(25)
+    int bonusPoints, // AED 5 -> 25 points at 5pts=AED1... configurable
     @Default(true) bool weekendsCountAsActive,
     @Default(true) bool holidaysCountAsActive,
     @Default(1) int streakGraceDays, // extra approved-absence tolerance
-
     // ---- Monetary conversion ----
     @Default(true) bool monetaryConversionEnabled,
     @Default(50) int pointsPerCurrencyUnit, // 50 points = 1 AED

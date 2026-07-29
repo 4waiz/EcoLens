@@ -5,9 +5,19 @@ import '../../../../core/theme/app_colors.dart';
 /// A procedural illustration of a physical Student ID card being tapped on an
 /// NFC reader, with an animated pulse. Deliberately NOT a phone — students are
 /// identified only by their physical card.
+///
+/// Everything inside the card is sized as a fraction of [width], and every text
+/// run is capped to a single line, so the illustration renders identically at
+/// any size and can never overflow (it is often placed inside a scaled game
+/// panel).
 class StudentCardIllustration extends StatefulWidget {
-  const StudentCardIllustration({super.key, this.compact = false});
+  const StudentCardIllustration({super.key, this.compact = false, this.width});
+
+  /// Convenience preset: a smaller card for side panels.
   final bool compact;
+
+  /// Explicit card width. Overrides [compact] when provided.
+  final double? width;
 
   @override
   State<StudentCardIllustration> createState() =>
@@ -35,11 +45,14 @@ class _StudentCardIllustrationState extends State<StudentCardIllustration>
 
   @override
   Widget build(BuildContext context) {
-    final cardW = widget.compact ? 200.0 : 300.0;
-    final cardH = cardW * 0.62;
+    final cardW = widget.width ?? (widget.compact ? 210.0 : 300.0);
+    final cardH = cardW * 0.64;
+    final pad = cardW * 0.055;
+    final readerW = cardW * 0.30;
+
     return SizedBox(
-      width: cardW + 90,
-      height: cardH + 30,
+      width: cardW + readerW,
+      height: cardH + cardW * 0.10,
       child: Stack(
         alignment: Alignment.center,
         clipBehavior: Clip.none,
@@ -51,17 +64,17 @@ class _StudentCardIllustrationState extends State<StudentCardIllustration>
               animation: _pulse,
               builder: (context, _) {
                 return SizedBox(
-                  width: 90,
-                  height: 90,
+                  width: readerW,
+                  height: readerW,
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
                       for (var i = 0; i < 3; i++)
-                        _ring((_pulse.value + i / 3) % 1.0),
-                      const Icon(
+                        _ring((_pulse.value + i / 3) % 1.0, readerW),
+                      Icon(
                         Icons.wifi_tethering,
                         color: AppColors.primary,
-                        size: 30,
+                        size: readerW * 0.34,
                       ),
                     ],
                   ),
@@ -81,99 +94,104 @@ class _StudentCardIllustrationState extends State<StudentCardIllustration>
                   end: Alignment.bottomRight,
                   colors: [AppColors.primary, AppColors.primaryDark],
                 ),
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(cardW * 0.06),
                 boxShadow: [
                   BoxShadow(
                     color: AppColors.primary.withValues(alpha: 0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                    blurRadius: cardW * 0.07,
+                    offset: Offset(0, cardW * 0.035),
                   ),
                 ],
               ),
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(pad),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  // ---- Header -------------------------------------------
                   Row(
                     children: [
                       Container(
-                        width: 26,
-                        height: 26,
+                        width: cardW * 0.10,
+                        height: cardW * 0.10,
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.9),
-                          borderRadius: BorderRadius.circular(7),
+                          borderRadius: BorderRadius.circular(cardW * 0.026),
                         ),
-                        child: const Icon(Icons.eco,
-                            size: 16, color: AppColors.primary),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'STUDENT ID',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.5,
-                          fontSize: 13,
+                        child: Icon(
+                          Icons.eco,
+                          size: cardW * 0.062,
+                          color: AppColors.primary,
                         ),
                       ),
-                      const Spacer(),
+                      SizedBox(width: cardW * 0.03),
+                      Flexible(
+                        child: Text(
+                          'STUDENT ID',
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.fade,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: cardW * 0.005,
+                            fontSize: cardW * 0.048,
+                            height: 1.1,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: cardW * 0.02),
                       // NFC chip glyph.
                       Icon(
                         Icons.contactless,
                         color: Colors.white.withValues(alpha: 0.85),
-                        size: 22,
+                        size: cardW * 0.078,
                       ),
                     ],
                   ),
-                  const Spacer(),
+
+                  // ---- Photo + name placeholders -------------------------
                   Row(
                     children: [
-                      // Photo placeholder.
                       Container(
-                        width: cardH * 0.42,
-                        height: cardH * 0.42,
+                        width: cardH * 0.40,
+                        height: cardH * 0.40,
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(cardW * 0.035),
                         ),
-                        child: const Icon(Icons.person,
-                            color: Colors.white, size: 28),
+                        child: Icon(
+                          Icons.person,
+                          color: Colors.white,
+                          size: cardH * 0.24,
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 90,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.85),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Container(
-                            width: 64,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.5),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ],
+                      SizedBox(width: cardW * 0.045),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _bar(cardW * 0.42, cardH * 0.07),
+                            SizedBox(height: cardH * 0.055),
+                            _bar(cardW * 0.30, cardH * 0.055, alpha: 0.5),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                  const Spacer(),
-                  // Masked number — never show a full identifier.
+
+                  // ---- Masked number — never the full identifier ---------
                   Text(
                     '•••• •••• 0417',
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.fade,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
-                      letterSpacing: 2,
-                      fontSize: 14,
-                      fontFeatures: const [],
+                      letterSpacing: cardW * 0.007,
+                      fontSize: cardW * 0.050,
+                      height: 1.1,
                     ),
                   ),
                 ],
@@ -185,8 +203,17 @@ class _StudentCardIllustrationState extends State<StudentCardIllustration>
     );
   }
 
-  Widget _ring(double t) {
-    final size = 20 + t * 70;
+  Widget _bar(double w, double h, {double alpha = 0.85}) => Container(
+    width: w,
+    height: h,
+    decoration: BoxDecoration(
+      color: Colors.white.withValues(alpha: alpha),
+      borderRadius: BorderRadius.circular(h * 0.5),
+    ),
+  );
+
+  Widget _ring(double t, double box) {
+    final size = box * (0.22 + t * 0.78);
     final opacity = (1 - t).clamp(0.0, 1.0) * 0.5;
     return Container(
       width: size,
@@ -195,7 +222,7 @@ class _StudentCardIllustrationState extends State<StudentCardIllustration>
         shape: BoxShape.circle,
         border: Border.all(
           color: AppColors.primary.withValues(alpha: opacity),
-          width: 3,
+          width: box * 0.034,
         ),
       ),
     );

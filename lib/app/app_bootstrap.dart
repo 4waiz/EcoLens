@@ -32,10 +32,7 @@ Future<void> bootstrapEcoLens() async {
   }
 
   runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const EcoLensApp(),
-    ),
+    UncontrolledProviderScope(container: container, child: const EcoLensApp()),
   );
 
   debugPrint('EcoLens started in ${AppConfig.environment.label} mode');

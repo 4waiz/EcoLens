@@ -54,7 +54,8 @@ class KioskController extends StateNotifier<KioskSessionState> {
   Future<void> _init() async {
     // Wire privacy callbacks + the card listener synchronously so a card tap
     // that arrives during async config loading is never missed.
-    _privacy.onInactivityTimeout = () => endSession(reason: SessionStatus.timedOut);
+    _privacy.onInactivityTimeout = () =>
+        endSession(reason: SessionStatus.timedOut);
     _privacy.onClearImage = _wipeCapturedImage;
     _cardSub = _hw.listenForStudentCard().listen(_onCardScanned);
 
@@ -87,7 +88,8 @@ class KioskController extends StateNotifier<KioskSessionState> {
   }
 
   /// Public helper used by the dev panel + tests to assert legality.
-  bool canTransitionTo(KioskState target) => state.state.canTransitionTo(target);
+  bool canTransitionTo(KioskState target) =>
+      state.state.canTransitionTo(target);
 
   // ---------------------------------------------------------------------------
   // Idle / attract
@@ -238,8 +240,9 @@ class KioskController extends StateNotifier<KioskSessionState> {
 
     final config = state.config;
     final routed = classification.routedCategory(config.aiConfidenceThreshold);
-    final isLowConfidence =
-        !classification.clearsThreshold(config.aiConfidenceThreshold);
+    final isLowConfidence = !classification.clearsThreshold(
+      config.aiConfidenceThreshold,
+    );
     final wasCorrect = _game.isSelectionCorrect(
       result: classification,
       selected: selected,
@@ -348,7 +351,13 @@ class KioskController extends StateNotifier<KioskSessionState> {
     _processing = false;
 
     // Drive the LEDs on the (existing) controller for feedback.
-    unawaited(_driveFeedbackLeds(selected: selected, correct: routed, wasCorrect: wasCorrect));
+    unawaited(
+      _driveFeedbackLeds(
+        selected: selected,
+        correct: routed,
+        wasCorrect: wasCorrect,
+      ),
+    );
   }
 
   Future<void> _driveFeedbackLeds({
@@ -498,11 +507,11 @@ class KioskController extends StateNotifier<KioskSessionState> {
 /// Provider for the kiosk controller. autoDispose so leaving the kiosk clears
 /// any loaded student (privacy) — a fresh controller starts at idle.
 final kioskControllerProvider =
-    StateNotifierProvider.autoDispose<KioskController, KioskSessionState>(
-  (ref) {
-    // Keep alive while the kiosk screen is mounted.
-    final link = ref.keepAlive();
-    ref.onDispose(link.close);
-    return KioskController(ref);
-  },
-);
+    StateNotifierProvider.autoDispose<KioskController, KioskSessionState>((
+      ref,
+    ) {
+      // Keep alive while the kiosk screen is mounted.
+      final link = ref.keepAlive();
+      ref.onDispose(link.close);
+      return KioskController(ref);
+    });

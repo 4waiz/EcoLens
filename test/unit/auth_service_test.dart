@@ -17,7 +17,9 @@ void main() {
 
   group('student card authentication', () {
     test("Liam's card resolves to Liam's profile", () async {
-      final result = await auth.authenticateStudentCard(MockSeedData.liamCardUid);
+      final result = await auth.authenticateStudentCard(
+        MockSeedData.liamCardUid,
+      );
       expect(result.isOk, isTrue);
       expect(result.valueOrNull?.firstName, 'Liam');
       expect(result.valueOrNull?.className, '4B');

@@ -48,8 +48,10 @@ class _DevPanelScreenState extends ConsumerState<DevPanelScreen> {
           TextButton.icon(
             onPressed: () => context.go(AppRoutes.kiosk),
             icon: const Icon(Icons.smart_display, color: Colors.white),
-            label: const Text('Open Kiosk',
-                style: TextStyle(color: Colors.white)),
+            label: const Text(
+              'Open Kiosk',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -86,16 +88,16 @@ class _DevPanelScreenState extends ConsumerState<DevPanelScreen> {
                                 _DevButton(
                                   label: "Simulate Liam's card",
                                   icon: Icons.person,
-                                  onTap: () =>
-                                      hw.simulateStudentCard(MockSeedData.liamCardUid),
+                                  onTap: () => hw.simulateStudentCard(
+                                    MockSeedData.liamCardUid,
+                                  ),
                                 ),
                                 const SizedBox(height: 8),
                                 _DevButton(
                                   label: 'Simulate another student',
                                   icon: Icons.people,
-                                  onTap: () => hw.simulateStudentCard(
-                                    cards[3].cardUid,
-                                  ),
+                                  onTap: () =>
+                                      hw.simulateStudentCard(cards[3].cardUid),
                                 ),
                                 const SizedBox(height: 8),
                                 _DevButton(
@@ -145,7 +147,8 @@ class _DevPanelScreenState extends ConsumerState<DevPanelScreen> {
                                   onChanged: (v) {
                                     setState(() => _forceConfidence = v);
                                     ai.setForcedConfidence(
-                                        v ? _confidence : null);
+                                      v ? _confidence : null,
+                                    );
                                   },
                                 ),
                                 Slider(
@@ -246,8 +249,7 @@ class _DevPanelScreenState extends ConsumerState<DevPanelScreen> {
                               children: [
                                 for (final c in WasteCategory.values)
                                   Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 8),
+                                    padding: const EdgeInsets.only(bottom: 8),
                                     child: Row(
                                       children: [
                                         SizedBox(
@@ -262,20 +264,26 @@ class _DevPanelScreenState extends ConsumerState<DevPanelScreen> {
                                         _LedDot(
                                           colour: AppColors.success,
                                           onTap: () => hw.setSlotLed(
-                                              c, FeedbackColour.green),
+                                            c,
+                                            FeedbackColour.green,
+                                          ),
                                         ),
                                         const SizedBox(width: 6),
                                         _LedDot(
                                           colour: AppColors.error,
                                           onTap: () => hw.setSlotLed(
-                                              c, FeedbackColour.red),
+                                            c,
+                                            FeedbackColour.red,
+                                          ),
                                         ),
                                         const Spacer(),
                                         TextButton.icon(
                                           onPressed: () =>
                                               hw.sendOpenSlotCommand(c),
                                           icon: const Icon(
-                                              Icons.open_in_full, size: 16),
+                                            Icons.open_in_full,
+                                            size: 16,
+                                          ),
                                           label: const Text('Open'),
                                         ),
                                       ],
@@ -390,10 +398,7 @@ class _StatusBar extends StatelessWidget {
         children: [
           const Icon(Icons.developer_board, color: Colors.white),
           const SizedBox(width: 12),
-          Text(
-            'Kiosk state: ',
-            style: const TextStyle(color: Colors.white70),
-          ),
+          Text('Kiosk state: ', style: const TextStyle(color: Colors.white70)),
           Text(
             state,
             style: const TextStyle(
@@ -475,10 +480,7 @@ class _DevButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: onTap,
       icon: Icon(icon, size: 18),
-      label: Align(
-        alignment: Alignment.centerLeft,
-        child: Text(label),
-      ),
+      label: Align(alignment: Alignment.centerLeft, child: Text(label)),
       style: OutlinedButton.styleFrom(
         foregroundColor: colour,
         side: BorderSide(color: colour.withValues(alpha: 0.4)),
@@ -537,8 +539,10 @@ class _FillSlider extends StatelessWidget {
         ),
         SizedBox(
           width: 40,
-          child: Text('${(value * 100).round()}%',
-              style: const TextStyle(fontSize: 12)),
+          child: Text(
+            '${(value * 100).round()}%',
+            style: const TextStyle(fontSize: 12),
+          ),
         ),
       ],
     );

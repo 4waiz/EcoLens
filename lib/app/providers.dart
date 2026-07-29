@@ -128,8 +128,9 @@ final aiClassificationProvider = Provider<AiClassificationService>((ref) {
   // For production, register RealAiClassificationAdapter here instead.
 });
 
-final mockAiClassificationProvider =
-    Provider<MockAiClassificationService?>((ref) {
+final mockAiClassificationProvider = Provider<MockAiClassificationService?>((
+  ref,
+) {
   final ai = ref.watch(aiClassificationProvider);
   return ai is MockAiClassificationService ? ai : null;
 });
@@ -137,9 +138,8 @@ final mockAiClassificationProvider =
 // ---- Auth ----
 
 final authServiceProvider = Provider<AuthService>(
-  (ref) => MockAuthService(
-    studentRepository: ref.watch(studentRepositoryProvider),
-  ),
+  (ref) =>
+      MockAuthService(studentRepository: ref.watch(studentRepositoryProvider)),
 );
 
 /// The current staff auth session (null when logged out). Students never create
@@ -179,7 +179,9 @@ final sessionPrivacyServiceProvider = Provider<SessionPrivacyService>((ref) {
 // ---- Live config (reactive) ----
 
 /// The active gamification/AI config, reloaded when an admin saves changes.
-final gamificationConfigProvider = FutureProvider<GamificationConfig>((ref) async {
+final gamificationConfigProvider = FutureProvider<GamificationConfig>((
+  ref,
+) async {
   final repo = ref.watch(configRepositoryProvider);
   // Rebuild when the config changes.
   final sub = repo.watchConfig().listen((_) {});
@@ -188,6 +190,4 @@ final gamificationConfigProvider = FutureProvider<GamificationConfig>((ref) asyn
 });
 
 /// Environment banner flag.
-final appEnvironmentProvider = Provider(
-  (ref) => AppConfig.environment,
-);
+final appEnvironmentProvider = Provider((ref) => AppConfig.environment);

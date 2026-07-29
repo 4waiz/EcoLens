@@ -50,10 +50,14 @@ class RewardService {
     required String terminalId,
   }) async {
     if (!item.isActive) {
-      return const Result.err(RedemptionFailure('This reward is not available.'));
+      return const Result.err(
+        RedemptionFailure('This reward is not available.'),
+      );
     }
     if (!item.stockStatus.isAvailable) {
-      return const Result.err(RedemptionFailure('This reward is out of stock.'));
+      return const Result.err(
+        RedemptionFailure('This reward is out of stock.'),
+      );
     }
     if (student.availablePoints < item.pointCost) {
       return Result.err(

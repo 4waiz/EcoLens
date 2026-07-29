@@ -62,18 +62,18 @@ class RealHardwareBridgeAdapter implements HardwareBridgeService {
       throw UnimplementedError(_unimplemented);
 
   @override
-  Future<void> setSlotLed(WasteCategory category, FeedbackColour colour) async =>
-      throw UnimplementedError(_unimplemented);
+  Future<void> setSlotLed(
+    WasteCategory category,
+    FeedbackColour colour,
+  ) async => throw UnimplementedError(_unimplemented);
 
   @override
-  Future<void> clearAllLeds() async =>
-      throw UnimplementedError(_unimplemented);
+  Future<void> clearAllLeds() async => throw UnimplementedError(_unimplemented);
 
   @override
   Future<HardwareCommandStatus> sendOpenSlotCommand(
     WasteCategory category,
-  ) async =>
-      throw UnimplementedError(_unimplemented);
+  ) async => throw UnimplementedError(_unimplemented);
 
   @override
   Stream<bool> listenForWastePresence() =>

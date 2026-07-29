@@ -8,20 +8,27 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/state_views.dart';
 import '../../../domain/models/models.dart';
 import '../../../shared/components/eco_card.dart';
-import '../../../shared/components/guardian_avatar.dart';
 import '../../../shared/components/house_badge.dart';
 import '../../../shared/responsive/responsive.dart';
 import 'teacher_nav.dart';
+import '../../../shared/world/guardian_mascot.dart';
 
 /// Loads a student + related context for the detail screen.
-final _studentDetailProvider =
-    FutureProvider.autoDispose.family((ref, String id) async {
+final _studentDetailProvider = FutureProvider.autoDispose.family((
+  ref,
+  String id,
+) async {
   final student = await ref.watch(studentRepositoryProvider).getStudentById(id);
   if (student == null) return null;
-  final house = await ref.watch(houseRepositoryProvider).getHouseById(student.houseId);
-  final avatar = await ref.watch(avatarRepositoryProvider).getAvatarById(student.avatarId);
-  final sessions =
-      await ref.watch(sessionRepositoryProvider).getSessionsForStudent(id);
+  final house = await ref
+      .watch(houseRepositoryProvider)
+      .getHouseById(student.houseId);
+  final avatar = await ref
+      .watch(avatarRepositoryProvider)
+      .getAvatarById(student.avatarId);
+  final sessions = await ref
+      .watch(sessionRepositoryProvider)
+      .getSessionsForStudent(id);
   return (student: student, house: house, avatar: avatar, sessions: sessions);
 });
 
@@ -97,7 +104,10 @@ class _DetailBody extends StatelessWidget {
                   house: house,
                   avatar: avatar,
                 );
-                final stats = _StatsColumn(student: student, sessions: sessions);
+                final stats = _StatsColumn(
+                  student: student,
+                  sessions: sessions,
+                );
                 if (!wide) {
                   return Column(
                     children: [profile, const SizedBox(height: 16), stats],
@@ -138,10 +148,7 @@ class _ProfileCard extends StatelessWidget {
     return EcoCard(
       child: Column(
         children: [
-          SizedBox(
-            height: 160,
-            child: GuardianAvatar(stage: avatar?.stage ?? 1, size: 160),
-          ),
+          SizedBox(height: 160, child: const GuardianPortrait(size: 160)),
           Text(
             student.fullName,
             style: Theme.of(context).textTheme.headlineSmall,
@@ -158,8 +165,11 @@ class _ProfileCard extends StatelessWidget {
           const SizedBox(height: 16),
           const Divider(),
           const SizedBox(height: 8),
-          _kv(context, 'Guardian stage',
-              avatar != null ? 'Level ${avatar!.level}' : '—'),
+          _kv(
+            context,
+            'Guardian stage',
+            avatar != null ? 'Level ${avatar!.level}' : '—',
+          ),
           _kv(context, 'Student ID', student.maskedStudentNumber),
           _kv(context, 'Status', student.accountStatus.label),
         ],
@@ -193,18 +203,30 @@ class _StatsColumn extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _bigStat('Total XP', '${student.totalXp}',
-                  AppColors.xpPurple, Icons.star),
+              child: _bigStat(
+                'Total XP',
+                '${student.totalXp}',
+                AppColors.xpPurple,
+                Icons.star,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _bigStat('Accuracy', '${(student.accuracy * 100).round()}%',
-                  AppColors.success, Icons.verified),
+              child: _bigStat(
+                'Accuracy',
+                '${(student.accuracy * 100).round()}%',
+                AppColors.success,
+                Icons.verified,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _bigStat('Streak', '${student.currentStreak}',
-                  AppColors.error, Icons.local_fire_department),
+              child: _bigStat(
+                'Streak',
+                '${student.currentStreak}',
+                AppColors.error,
+                Icons.local_fire_department,
+              ),
             ),
           ],
         ),
@@ -212,18 +234,30 @@ class _StatsColumn extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _bigStat('Correct', '${student.correctRecyclingCount}',
-                  AppColors.primary, Icons.check_circle_outline),
+              child: _bigStat(
+                'Correct',
+                '${student.correctRecyclingCount}',
+                AppColors.primary,
+                Icons.check_circle_outline,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _bigStat('Incorrect', '${student.incorrectRecyclingCount}',
-                  AppColors.warning, Icons.info_outline),
+              child: _bigStat(
+                'Incorrect',
+                '${student.incorrectRecyclingCount}',
+                AppColors.warning,
+                Icons.info_outline,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: _bigStat('Points', '${student.availablePoints}',
-                  AppColors.coinGoldDark, Icons.monetization_on_outlined),
+              child: _bigStat(
+                'Points',
+                '${student.availablePoints}',
+                AppColors.coinGoldDark,
+                Icons.monetization_on_outlined,
+              ),
             ),
           ],
         ),
@@ -244,7 +278,10 @@ class _StatsColumn extends StatelessWidget {
           Text(
             value,
             style: TextStyle(
-                fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.ink),
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: AppColors.ink,
+            ),
           ),
           Text(label, style: const TextStyle(color: AppColors.inkMuted)),
         ],
@@ -278,8 +315,11 @@ class _LearningAreas extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 5),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline,
-                        size: 18, color: AppColors.warning),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 18,
+                      color: AppColors.warning,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
@@ -308,10 +348,7 @@ class _RecentActivity extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
-            title: 'Recent activity',
-            icon: Icons.history,
-          ),
+          const SectionHeader(title: 'Recent activity', icon: Icons.history),
           const SizedBox(height: 12),
           if (sessions.isEmpty)
             const Text('No sessions yet.')
@@ -338,11 +375,16 @@ class _RecentActivity extends StatelessWidget {
                         padding: const EdgeInsets.only(right: 12),
                         child: Row(
                           children: [
-                            Icon(s.finalCategory!.icon,
-                                size: 16, color: s.finalCategory!.colour),
+                            Icon(
+                              s.finalCategory!.icon,
+                              size: 16,
+                              color: s.finalCategory!.colour,
+                            ),
                             const SizedBox(width: 4),
-                            Text(s.finalCategory!.shortLabel,
-                                style: Theme.of(context).textTheme.bodySmall),
+                            Text(
+                              s.finalCategory!.shortLabel,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
                           ],
                         ),
                       ),

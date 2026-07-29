@@ -136,7 +136,11 @@ class OfflineBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.cloud_off_outlined, size: 16, color: AppColors.warning),
+          const Icon(
+            Icons.cloud_off_outlined,
+            size: 16,
+            color: AppColors.warning,
+          ),
           const SizedBox(width: 6),
           Text(
             queued > 0 ? 'Offline · $queued queued' : 'Offline',

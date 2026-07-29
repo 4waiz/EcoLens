@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Full-resolution generated art masters. Processed, bundled copies live in
+# assets/ — regenerate them with `python tool/prepare_art_assets.py`.
+art_source/

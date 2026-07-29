@@ -90,11 +90,10 @@ class _GuardianAvatarState extends State<GuardianAvatar>
     return AnimatedBuilder(
       animation: Listenable.merge([_bobController, _glowController]),
       builder: (context, _) {
-        final bobOffset =
-            widget.bob ? math.sin(_bobController.value * math.pi) * 6 : 0.0;
-        final glow = widget.glowing
-            ? 0.4 + _glowController.value * 0.6
+        final bobOffset = widget.bob
+            ? math.sin(_bobController.value * math.pi) * 6
             : 0.0;
+        final glow = widget.glowing ? 0.4 + _glowController.value * 0.6 : 0.0;
         return Transform.translate(
           offset: Offset(0, -bobOffset),
           child: SizedBox(

@@ -20,13 +20,10 @@ class MockSessionRepository implements SessionRepository {
   }
 
   @override
-  Future<List<RecyclingSession>> getSessionsForStudent(
-    String studentId,
-  ) async {
+  Future<List<RecyclingSession>> getSessionsForStudent(String studentId) async {
     await _tick();
-    final list =
-        _db.sessions.where((s) => s.studentId == studentId).toList()
-          ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    final list = _db.sessions.where((s) => s.studentId == studentId).toList()
+      ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
     return list;
   }
 
@@ -34,8 +31,9 @@ class MockSessionRepository implements SessionRepository {
   Future<RecyclingSession> saveSession(RecyclingSession session) async {
     await _tick();
     // Idempotency: never store the same completed session twice.
-    final existing =
-        _db.sessions.indexWhere((s) => s.idempotencyKey == session.idempotencyKey);
+    final existing = _db.sessions.indexWhere(
+      (s) => s.idempotencyKey == session.idempotencyKey,
+    );
     if (existing >= 0) {
       _db.sessions[existing] = session;
     } else {
@@ -54,8 +52,9 @@ class MockSessionRepository implements SessionRepository {
   Future<void> enqueueSession(RecyclingSession session) async {
     await _tick();
     // Avoid enqueuing duplicates by idempotency key.
-    final already =
-        _db.offlineQueue.any((s) => s.idempotencyKey == session.idempotencyKey);
+    final already = _db.offlineQueue.any(
+      (s) => s.idempotencyKey == session.idempotencyKey,
+    );
     if (!already) {
       _db.offlineQueue.add(
         session.copyWith(status: SessionStatus.queuedOffline),
@@ -71,8 +70,9 @@ class MockSessionRepository implements SessionRepository {
     final toFlush = List.of(_db.offlineQueue);
     for (final session in toFlush) {
       // Skip if this session was already committed (idempotency guard).
-      final alreadyCommitted = _db.sessions
-          .any((s) => s.idempotencyKey == session.idempotencyKey);
+      final alreadyCommitted = _db.sessions.any(
+        (s) => s.idempotencyKey == session.idempotencyKey,
+      );
       if (!alreadyCommitted) {
         _db.sessions.add(session.copyWith(status: SessionStatus.synced));
         synced++;

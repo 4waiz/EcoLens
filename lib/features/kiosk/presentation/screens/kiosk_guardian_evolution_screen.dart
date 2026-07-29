@@ -7,7 +7,8 @@ import '../../../../domain/models/models.dart';
 import '../../../../shared/painters/guardian_painter.dart';
 import '../../application/kiosk_controller.dart';
 import '../widgets/kiosk_chrome.dart';
-import '../../../../shared/components/guardian_avatar.dart';
+import '../../../../shared/world/guardian_emotion.dart';
+import '../../../../shared/world/guardian_mascot.dart';
 
 /// SCREEN 12 — Guardian evolution.
 ///
@@ -40,8 +41,8 @@ class KioskGuardianEvolutionScreen extends ConsumerWidget {
     final progressToNext = nextStage == null
         ? 1.0
         : ((student.totalXp - currentStage.minimumXp) /
-                (nextStage.minimumXp - currentStage.minimumXp))
-            .clamp(0.0, 1.0);
+                  (nextStage.minimumXp - currentStage.minimumXp))
+              .clamp(0.0, 1.0);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(48, 8, 48, 24),
@@ -54,8 +55,8 @@ class KioskGuardianEvolutionScreen extends ConsumerWidget {
               Text(
                 '${avatar.name} · Your Guardian',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.primaryDark,
-                    ),
+                  color: AppColors.primaryDark,
+                ),
               ),
               const Spacer(),
               KioskButton(
@@ -77,10 +78,9 @@ class KioskGuardianEvolutionScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       Expanded(
-                        child: GuardianAvatar(
-                          stage: avatar.stage,
+                        child: GuardianPortrait(
                           size: 260,
-                          glowing: true,
+                          emotion: GuardianEmotion.welcome,
                         ),
                       ),
                       Container(
@@ -108,9 +108,9 @@ class KioskGuardianEvolutionScreen extends ConsumerWidget {
                                 children: [
                                   Text(
                                     'To ${nextStage.title}',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.labelMedium,
                                   ),
                                   const Spacer(),
                                   Text(
@@ -161,7 +161,8 @@ class KioskGuardianEvolutionScreen extends ConsumerWidget {
                       Expanded(
                         child: ListView.separated(
                           itemCount: ladder.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 10),
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: 10),
                           itemBuilder: (context, i) {
                             final stage = ladder[i];
                             final unlocked = avatar.stage >= stage.stageIndex;
@@ -175,9 +176,7 @@ class KioskGuardianEvolutionScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      _AccessoriesRow(
-                        unlocked: avatar.unlockedAccessories,
-                      ),
+                      _AccessoriesRow(unlocked: avatar.unlockedAccessories),
                     ],
                   ),
                 ),
@@ -230,8 +229,10 @@ class _StageCard extends StatelessWidget {
                       color: AppColors.surfaceAlt,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.lock_outline,
-                        color: AppColors.inkFaint),
+                    child: const Icon(
+                      Icons.lock_outline,
+                      color: AppColors.inkFaint,
+                    ),
                   ),
           ),
           const SizedBox(width: 14),
@@ -253,7 +254,9 @@ class _StageCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.primary,
                           borderRadius: BorderRadius.circular(999),
@@ -319,10 +322,7 @@ class _AccessoriesRow extends StatelessWidget {
         children: [
           const Icon(Icons.checkroom, color: AppColors.xpPurple, size: 20),
           const SizedBox(width: 8),
-          Text(
-            'Unlocked:',
-            style: Theme.of(context).textTheme.titleSmall,
-          ),
+          Text('Unlocked:', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(width: 12),
           if (unlocked.isEmpty)
             Text(

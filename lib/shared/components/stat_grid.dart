@@ -33,8 +33,8 @@ class StatGrid extends StatelessWidget {
         final columns = constraints.maxWidth < 560
             ? 1
             : constraints.maxWidth < 900
-                ? 2
-                : metrics.length.clamp(1, 4);
+            ? 2
+            : metrics.length.clamp(1, 4);
         const spacing = 16.0;
         final itemWidth =
             (constraints.maxWidth - spacing * (columns - 1)) / columns;
@@ -48,7 +48,9 @@ class StatGrid extends StatelessWidget {
                 child: StatTile(
                   label: metrics[i].label,
                   value: metrics[i].value,
-                  caption: metrics[i].caption.isEmpty ? null : metrics[i].caption,
+                  caption: metrics[i].caption.isEmpty
+                      ? null
+                      : metrics[i].caption,
                   delta: metrics[i].delta.isEmpty ? null : metrics[i].delta,
                   deltaPositive: metrics[i].deltaPositive,
                   icon: _icons[i % _icons.length],

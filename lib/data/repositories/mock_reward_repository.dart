@@ -43,10 +43,11 @@ class MockRewardRepository implements RewardRepository {
   @override
   Future<List<RewardTransaction>> getTransactions({String? studentId}) async {
     await _tick();
-    final list = _db.transactions
-        .where((t) => studentId == null || t.studentId == studentId)
-        .toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final list =
+        _db.transactions
+            .where((t) => studentId == null || t.studentId == studentId)
+            .toList()
+          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return list;
   }
 

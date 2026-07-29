@@ -4,276 +4,242 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../data/mock/mock_seed_data.dart';
-import '../../../../domain/enums/waste_category.dart';
-import '../../../../shared/components/guardian_avatar.dart';
+import '../../../../shared/components/game_ui.dart';
+import '../../../../shared/painters/valley_painters.dart';
 import '../../application/kiosk_controller.dart';
-import '../widgets/student_card_illustration.dart';
+import '../../application/kiosk_preferences.dart';
+import '../widgets/student_mission_panel.dart';
+import '../widgets/valley_chrome.dart';
 
-/// SCREEN 1 — Idle / attract.
+/// SCREEN 1 — Idle / attract: the entrance to **Guardian Valley**.
 ///
-/// Invites the student to tap their PHYSICAL Student ID card. No phone imagery
-/// anywhere. Shows the Guardian, the card illustration with an NFC pulse, the
-/// four waste categories, and a school-wide environmental impact strip. No
-/// previous student details are ever shown here (privacy).
+/// The Guardian greets the valley and invites the student to tap their PHYSICAL
+/// Student ID card. No phone imagery anywhere, and — critically — no trace of
+/// the previous student: the left panel shows the card and the house rules, not
+/// anybody's stats. Personal data only appears after a card is read.
 class KioskIdleScreen extends ConsumerWidget {
   const KioskIdleScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = context.gameScale;
+    final prefs = ref.watch(kioskPreferencesProvider);
+    final session = ref.watch(kioskControllerProvider);
+    final animate = !prefs.reduceMotion;
+
+    // One phase drives the whole attract screen: the Student ID panel, the
+    // Guardian's mood and what she says. It is derived from the real kiosk FSM
+    // — the panel owns none of the scanning logic.
+    final phase = StudentScanPhase.fromKiosk(session);
+    final firstName = phase.revealsStudent ? session.student?.firstName : null;
+
     // Demo convenience: in mock/demo builds, tapping the card (or the prompt)
     // simulates tapping Liam's physical Student ID card so the flow can be
     // walked without the hardware simulator. On a real kiosk the physical
     // NFC/RFID reader drives this instead.
     void simulateTap() {
+      ref.read(kioskPreferencesProvider.notifier).click();
+      final controller = ref.read(kioskControllerProvider.notifier);
+      // A card that failed to read is retried through the existing FSM path.
+      if (phase == StudentScanPhase.invalidCard) {
+        controller.retryCard();
+        return;
+      }
       if (AppConfig.useMockServices) {
-        ref
-            .read(kioskControllerProvider.notifier)
-            .readCard(MockSeedData.liamCardUid);
+        controller.readCard(MockSeedData.liamCardUid);
       }
     }
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(48, 8, 48, 32),
-      child: Row(
+      padding: EdgeInsets.fromLTRB(18 * s, 10 * s, 18 * s, 14 * s),
+      child: Column(
         children: [
-          // Left: welcome + card prompt.
           Expanded(
-            flex: 6,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Welcome to EcoLens',
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: AppColors.primaryDark,
-                      ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Recycle right, earn rewards, grow your Guardian.',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
-                ),
-                const SizedBox(height: 36),
-                MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: simulateTap,
-                    child: const StudentCardIllustration(),
+                // ---- Left: start your eco mission (physical card) --------
+                Expanded(
+                  flex: 26,
+                  child: StudentMissionPanel(
+                    phase: phase,
+                    studentFirstName: firstName,
+                    animate: animate,
+                    onTapCard: simulateTap,
                   ),
                 ),
-                const SizedBox(height: 28),
-                Semantics(
-                  button: true,
-                  label: 'Tap your Student ID card to begin',
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: simulateTap,
-                      borderRadius: BorderRadius.circular(20),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 18),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.3),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                SizedBox(width: 14 * s),
+
+                // ---- Centre: the Guardian on the valley dais -------------
+                Expanded(
+                  flex: 48,
+                  child: _CentreStage(animate: animate, onTapCard: simulateTap),
+                ),
+                SizedBox(width: 14 * s),
+
+                // ---- Right: what the whole school has achieved -----------
+                const Expanded(
+                  flex: 26,
+                  child: ValleyImpactPanel(
+                    rankings: [
+                      ValleyRanking(
+                        name: 'Taurus House',
+                        points: 4850,
+                        colour: AppColors.houseTaurus,
+                      ),
+                      ValleyRanking(
+                        name: 'Leo House',
+                        points: 4310,
+                        colour: AppColors.houseLeo,
+                      ),
+                      ValleyRanking(
+                        name: 'Aquarius House',
+                        points: 3980,
+                        colour: AppColors.houseAquarius,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 12 * s),
+
+          // ---- Bottom: the four world portals -------------------------
+          const WorldPortalRow(
+            caption: 'EVERY ITEM HAS ITS OWN PORTAL — WE SORT THEM TOGETHER',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Centre column. The Guardian and its speech bubble are drawn in the *world*
+/// layer (see [KioskChrome]), so this only reserves their space and carries the
+/// call to action beneath them.
+class _CentreStage extends StatelessWidget {
+  const _CentreStage({required this.animate, required this.onTapCard});
+
+  final bool animate;
+  final VoidCallback onTapCard;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.gameScale;
+    return Column(
+      children: [
+        // Space occupied by the Guardian standing on the painted dais.
+        const Expanded(child: SizedBox.expand()),
+        SizedBox(height: 10 * s),
+        _TapCardButton(onTap: onTapCard),
+      ],
+    );
+  }
+}
+
+/// The primary call to action — deliberately card-shaped language and imagery,
+/// never a phone or a QR code.
+class _TapCardButton extends StatefulWidget {
+  const _TapCardButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_TapCardButton> createState() => _TapCardButtonState();
+}
+
+class _TapCardButtonState extends State<_TapCardButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1600),
+  )..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = context.gameScale;
+    return Semantics(
+      button: true,
+      label: 'Tap your Student ID card to begin',
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedBuilder(
+            animation: _pulse,
+            builder: (context, child) {
+              final glow = 0.35 + _pulse.value * 0.45;
+              return Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(22 * s),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: glow * 0.6),
+                      blurRadius: (18 + _pulse.value * 16) * s,
+                      offset: Offset(0, 6 * s),
+                    ),
+                  ],
+                ),
+                child: child,
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: 24 * s,
+                vertical: 14 * s,
+              ),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: AppColors.heroGreenGradient,
+                ),
+                borderRadius: BorderRadius.circular(22 * s),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  width: 2.5 * s,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.contactless_outlined,
+                    color: Colors.white,
+                    size: 26 * s,
+                  ),
+                  SizedBox(width: 12 * s),
+                  Flexible(
+                    child: Text(
+                      'Tap your Student ID card to begin',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 19 * s,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            color: ValleyPalette.forestDark.withValues(
+                              alpha: 0.45,
                             ),
-                          ],
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.contactless_outlined,
-                                color: Colors.white, size: 30),
-                            SizedBox(width: 14),
-                            Text(
-                              'Tap your Student ID card to begin',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
+                            blurRadius: 4 * s,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                const _CategoryStrip(),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 32),
-          // Right: Guardian + school impact.
-          Expanded(
-            flex: 5,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Expanded(
-                  child: Center(
-                    child: GuardianAvatar(stage: 2, size: 300, glowing: true),
-                  ),
-                ),
-                const _SchoolImpactCard(),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CategoryStrip extends StatelessWidget {
-  const _CategoryStrip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        for (final c in WasteCategory.values) _CategoryDot(category: c),
-      ],
-    );
-  }
-}
-
-class _CategoryDot extends StatelessWidget {
-  const _CategoryDot({required this.category});
-  final WasteCategory category;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(category.icon, color: category.colour, size: 20),
-          const SizedBox(width: 8),
-          Text(
-            category.label,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.ink,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SchoolImpactCard extends StatelessWidget {
-  const _SchoolImpactCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.public, color: AppColors.primary, size: 22),
-              const SizedBox(width: 8),
-              Text(
-                "Today's school-wide impact",
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: const [
-              Expanded(
-                child: _ImpactStat(
-                  value: '312',
-                  label: 'Items recycled',
-                  icon: Icons.recycling,
-                  colour: AppColors.primary,
-                ),
-              ),
-              Expanded(
-                child: _ImpactStat(
-                  value: '48 kg',
-                  label: 'CO₂ saved',
-                  icon: Icons.cloud_outlined,
-                  colour: AppColors.info,
-                ),
-              ),
-              Expanded(
-                child: _ImpactStat(
-                  value: '86%',
-                  label: 'Recycled right',
-                  icon: Icons.verified_outlined,
-                  colour: AppColors.coinGoldDark,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ImpactStat extends StatelessWidget {
-  const _ImpactStat({
-    required this.value,
-    required this.label,
-    required this.icon,
-    required this.colour,
-  });
-
-  final String value;
-  final String label;
-  final IconData icon;
-  final Color colour;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, color: colour, size: 26),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w800,
-            color: colour,
           ),
         ),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12, color: AppColors.inkMuted),
-        ),
-      ],
+      ),
     );
   }
 }

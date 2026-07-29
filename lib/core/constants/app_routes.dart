@@ -26,8 +26,7 @@ abstract final class AppRoutes {
   static const teacherReports = '/teacher/reports';
   static const teacherAnnouncements = '/teacher/announcements';
 
-  static String teacherStudentDetailPath(String id) =>
-      '/teacher/students/$id';
+  static String teacherStudentDetailPath(String id) => '/teacher/students/$id';
 
   // ---- Admin dashboard ----
   static const adminLogin = '/admin/login';

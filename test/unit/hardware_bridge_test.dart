@@ -24,13 +24,15 @@ void main() {
     expect(status, HardwareCommandStatus.acknowledged);
   });
 
-  test('open-slot command is queued when the controller is disconnected',
-      () async {
-    await hw.initialise();
-    hw.setControllerConnected(false);
-    final status = await hw.sendOpenSlotCommand(WasteCategory.paper);
-    expect(status, HardwareCommandStatus.skippedOffline);
-  });
+  test(
+    'open-slot command is queued when the controller is disconnected',
+    () async {
+      await hw.initialise();
+      hw.setControllerConnected(false);
+      final status = await hw.sendOpenSlotCommand(WasteCategory.paper);
+      expect(status, HardwareCommandStatus.skippedOffline);
+    },
+  );
 
   test('capture throws when the camera is unavailable', () async {
     await hw.initialise();
@@ -41,10 +43,7 @@ void main() {
   test('simulating a card throws when the reader is unavailable', () async {
     await hw.initialise();
     hw.setCardReaderAvailable(false);
-    expect(
-      hw.simulateStudentCard('04A1B2C3D4'),
-      throwsA(isA<Exception>()),
-    );
+    expect(hw.simulateStudentCard('04A1B2C3D4'), throwsA(isA<Exception>()));
   });
 
   test('setting an LED updates the reported status', () async {

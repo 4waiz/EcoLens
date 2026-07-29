@@ -8,17 +8,16 @@ import 'package:flutter_test/flutter_test.dart';
 /// Widget test — canteen card scan. Verifies the physical-card scan resolves a
 /// student into the canteen controller (no phone/QR anywhere).
 void main() {
-  testWidgets('canteen scan screen renders the physical-card prompt',
-      (tester) async {
+  testWidgets('canteen scan screen renders the physical-card prompt', (
+    tester,
+  ) async {
     tester.view.physicalSize = const Size(1280, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: CanteenScanCardScreen()),
-      ),
+      const ProviderScope(child: MaterialApp(home: CanteenScanCardScreen())),
     );
     await tester.pump();
 

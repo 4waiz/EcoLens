@@ -21,12 +21,12 @@ void main() {
   });
 
   RewardItem cheapItem() => const RewardItem(
-        id: 'rw-cheap',
-        name: 'Cheap Reward',
-        description: 'x',
-        pointCost: 10,
-        category: RewardCategory.snack,
-      );
+    id: 'rw-cheap',
+    name: 'Cheap Reward',
+    description: 'x',
+    pointCost: 10,
+    category: RewardCategory.snack,
+  );
 
   test('a student with enough points passes validation', () async {
     final student = db.studentById('stu-liam')!; // 15 points
@@ -75,22 +75,24 @@ void main() {
     expect(result.isErr, isTrue);
   });
 
-  test('creating a completed redemption debits the student balance once',
-      () async {
-    final student = db.studentById('stu-liam')!; // 15 points
-    final validated = await service.validateRedemption(
-      student: student,
-      item: cheapItem(), // costs 10, no staff approval required
-      staffId: 'canteen-1',
-      terminalId: 'CANTEEN-01',
-    );
-    expect(validated.isOk, isTrue);
+  test(
+    'creating a completed redemption debits the student balance once',
+    () async {
+      final student = db.studentById('stu-liam')!; // 15 points
+      final validated = await service.validateRedemption(
+        student: student,
+        item: cheapItem(), // costs 10, no staff approval required
+        staffId: 'canteen-1',
+        terminalId: 'CANTEEN-01',
+      );
+      expect(validated.isOk, isTrue);
 
-    final txn = await service.createRedemption(validated.valueOrNull!);
-    expect(txn.points, -10);
-    expect(txn.status, RewardTransactionStatus.completed);
+      final txn = await service.createRedemption(validated.valueOrNull!);
+      expect(txn.points, -10);
+      expect(txn.status, RewardTransactionStatus.completed);
 
-    // Balance reduced from 15 to 5 exactly once.
-    expect(db.studentById('stu-liam')!.availablePoints, 5);
-  });
+      // Balance reduced from 15 to 5 exactly once.
+      expect(db.studentById('stu-liam')!.availablePoints, 5);
+    },
+  );
 }

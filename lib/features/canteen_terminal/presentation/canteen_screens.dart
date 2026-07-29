@@ -46,8 +46,9 @@ class CanteenLoginScreen extends ConsumerStatefulWidget {
 }
 
 class _CanteenLoginScreenState extends ConsumerState<CanteenLoginScreen> {
-  final _identifier =
-      TextEditingController(text: MockSeedData.canteenEmployeeNumber);
+  final _identifier = TextEditingController(
+    text: MockSeedData.canteenEmployeeNumber,
+  );
   final _password = TextEditingController(text: MockSeedData.demoPassword);
   final _formKey = GlobalKey<FormState>();
   bool _loading = false;
@@ -67,7 +68,9 @@ class _CanteenLoginScreenState extends ConsumerState<CanteenLoginScreen> {
       _loading = true;
       _error = null;
     });
-    final result = await ref.read(authServiceProvider).authenticateCanteenStaff(
+    final result = await ref
+        .read(authServiceProvider)
+        .authenticateCanteenStaff(
           LoginCredentials(
             identifier: _identifier.text,
             password: _password.text,
@@ -91,11 +94,13 @@ class _CanteenLoginScreenState extends ConsumerState<CanteenLoginScreen> {
   Widget build(BuildContext context) {
     return StaffLoginScaffold(
       roleTitle: 'Canteen Terminal',
-      roleSubtitle: 'Redeem student reward points at the counter. Students tap '
+      roleSubtitle:
+          'Redeem student reward points at the counter. Students tap '
           'their physical ID card — no phone needed.',
       accent: AppColors.coinGoldDark,
       heroIcon: Icons.storefront_outlined,
-      demoHint: 'Demo account is pre-filled. Just press Sign in.\n'
+      demoHint:
+          'Demo account is pre-filled. Just press Sign in.\n'
           'Employee #: ${MockSeedData.canteenEmployeeNumber} · '
           'Password: ${MockSeedData.demoPassword}',
       form: Form(
@@ -123,7 +128,8 @@ class _CanteenLoginScreenState extends ConsumerState<CanteenLoginScreen> {
                 prefixIcon: const Icon(Icons.lock_outline),
                 suffixIcon: IconButton(
                   icon: Icon(
-                      _obscure ? Icons.visibility : Icons.visibility_off),
+                    _obscure ? Icons.visibility : Icons.visibility_off,
+                  ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
               ),
@@ -206,8 +212,7 @@ class CanteenScanCardScreen extends ConsumerWidget {
     WidgetRef ref,
     String uid,
   ) async {
-    final ok =
-        await ref.read(canteenControllerProvider.notifier).scanCard(uid);
+    final ok = await ref.read(canteenControllerProvider.notifier).scanCard(uid);
     if (ok && context.mounted) context.go(AppRoutes.canteenStudent);
   }
 
@@ -290,10 +295,9 @@ class _ScanPrompt extends StatelessWidget {
         Text(
           'Hold the physical Student ID card on the reader to look up their '
           'reward balance. No phone or QR code is used.',
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: AppColors.inkMuted),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 28),
@@ -375,8 +379,11 @@ class _ScanError extends StatelessWidget {
             color: AppColors.warningSurface,
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.credit_card_off,
-              size: 46, color: AppColors.warning),
+          child: const Icon(
+            Icons.credit_card_off,
+            size: 46,
+            color: AppColors.warning,
+          ),
         ),
         const SizedBox(height: 24),
         Text(
@@ -387,10 +394,9 @@ class _ScanError extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           message,
-          style: Theme.of(context)
-              .textTheme
-              .bodyLarge
-              ?.copyWith(color: AppColors.inkMuted),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge?.copyWith(color: AppColors.inkMuted),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 28),
@@ -486,8 +492,11 @@ class _StudentSummaryCard extends StatelessWidget {
                   color: AppColors.primarySurface,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.person,
-                    size: 34, color: AppColors.primary),
+                child: const Icon(
+                  Icons.person,
+                  size: 34,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -501,8 +510,9 @@ class _StudentSummaryCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Class ${student.className} · ${student.maskedStudentNumber}',
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: AppColors.inkMuted),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.inkMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -567,7 +577,11 @@ class _BalancePanel extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.stars_rounded, color: AppColors.coinGoldDark, size: 40),
+          const Icon(
+            Icons.stars_rounded,
+            color: AppColors.coinGoldDark,
+            size: 40,
+          ),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -582,18 +596,17 @@ class _BalancePanel extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 '$points pts',
-                style: Theme.of(context)
-                    .textTheme
-                    .displaySmall
-                    ?.copyWith(color: AppColors.ink, height: 1),
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                  color: AppColors.ink,
+                  height: 1,
+                ),
               ),
               if (money.isNotEmpty)
                 Text(
                   'Worth $money',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.inkMuted),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: AppColors.inkMuted),
                 ),
             ],
           ),
@@ -749,8 +762,11 @@ class _RewardCard extends StatelessWidget {
                     color: AppColors.coinGoldSurface,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(_categoryIcon(item.category),
-                      color: AppColors.coinGoldDark, size: 24),
+                  child: Icon(
+                    _categoryIcon(item.category),
+                    color: AppColors.coinGoldDark,
+                    size: 24,
+                  ),
                 ),
                 const Spacer(),
                 _StockBadge(status: item.stockStatus),
@@ -767,8 +783,9 @@ class _RewardCard extends StatelessWidget {
             Expanded(
               child: Text(
                 item.description,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: AppColors.inkMuted),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.inkMuted,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -787,15 +804,17 @@ class _RewardCard extends StatelessWidget {
                   const SizedBox(width: 6),
                   Text(
                     '· $money',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: AppColors.inkMuted),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.inkMuted,
+                    ),
                   ),
                 ],
                 const Spacer(),
                 Text(
                   item.category.label,
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: AppColors.inkFaint),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.inkFaint,
+                  ),
                 ),
               ],
             ),
@@ -849,17 +868,20 @@ class _CompactBalanceHeader extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
-          const Icon(Icons.stars_rounded,
-              color: AppColors.coinGoldDark, size: 22),
+          const Icon(
+            Icons.stars_rounded,
+            color: AppColors.coinGoldDark,
+            size: 22,
+          ),
           const SizedBox(width: 6),
           Text(
             money.isEmpty
                 ? '${student.availablePoints} pts'
                 : '${student.availablePoints} pts · $money',
-            style: Theme.of(context)
-                .textTheme
-                .titleMedium
-                ?.copyWith(color: AppColors.ink, fontWeight: FontWeight.w800),
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: AppColors.ink,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ],
       ),
@@ -904,11 +926,9 @@ class _CanteenConfirmScreenState extends ConsumerState<CanteenConfirmScreen> {
 
   Future<void> _validate() async {
     final ctx = _staffContext();
-    final result =
-        await ref.read(canteenControllerProvider.notifier).validateSelection(
-              staffId: ctx.staffId,
-              terminalId: ctx.terminalId,
-            );
+    final result = await ref
+        .read(canteenControllerProvider.notifier)
+        .validateSelection(staffId: ctx.staffId, terminalId: ctx.terminalId);
     if (!mounted) return;
     setState(() {
       _validating = false;
@@ -920,11 +940,9 @@ class _CanteenConfirmScreenState extends ConsumerState<CanteenConfirmScreen> {
     if (_submitting) return;
     setState(() => _submitting = true);
     final ctx = _staffContext();
-    final ok =
-        await ref.read(canteenControllerProvider.notifier).confirmRedemption(
-              staffId: ctx.staffId,
-              terminalId: ctx.terminalId,
-            );
+    final ok = await ref
+        .read(canteenControllerProvider.notifier)
+        .confirmRedemption(staffId: ctx.staffId, terminalId: ctx.terminalId);
     if (!mounted) return;
     if (ok) {
       context.go(AppRoutes.canteenSuccess);
@@ -1021,10 +1039,7 @@ class _ConfirmCard extends StatelessWidget {
             label: 'Student',
             value: '${student.firstName} · Class ${student.className}',
           ),
-          _SummaryRow(
-            label: 'ID',
-            value: student.maskedStudentNumber,
-          ),
+          _SummaryRow(label: 'ID', value: student.maskedStudentNumber),
           const Divider(height: 28),
           _SummaryRow(
             label: 'Cost',
@@ -1051,15 +1066,19 @@ class _ConfirmCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.verified_user_outlined,
-                      size: 18, color: AppColors.primary),
+                  const Icon(
+                    Icons.verified_user_outlined,
+                    size: 18,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'This reward requires staff approval and will be recorded '
                       'as pending for hand-off.',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: AppColors.primaryDark),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: AppColors.primaryDark,
+                      ),
                     ),
                   ),
                 ],
@@ -1075,7 +1094,8 @@ class _ConfirmCard extends StatelessWidget {
                 color: AppColors.errorSurface,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(
-                    color: AppColors.error.withValues(alpha: 0.35)),
+                  color: AppColors.error.withValues(alpha: 0.35),
+                ),
               ),
               child: Row(
                 children: [
@@ -1125,8 +1145,8 @@ class _ConfirmCard extends StatelessWidget {
                     submitting
                         ? 'Processing…'
                         : validating
-                            ? 'Checking…'
-                            : 'Confirm Redemption',
+                        ? 'Checking…'
+                        : 'Confirm Redemption',
                   ),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.coinGoldDark,
@@ -1259,8 +1279,9 @@ class _ReceiptCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             txn.description,
-            style: theme.textTheme.bodyLarge
-                ?.copyWith(color: AppColors.inkMuted),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: AppColors.inkMuted,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -1279,8 +1300,7 @@ class _ReceiptCard extends StatelessWidget {
                   value: '${txn.points.abs()} pts',
                   emphasise: true,
                 ),
-                if (money.isNotEmpty)
-                  _SummaryRow(label: 'Value', value: money),
+                if (money.isNotEmpty) _SummaryRow(label: 'Value', value: money),
                 _SummaryRow(
                   label: 'New balance',
                   value: '${student.availablePoints} pts',
@@ -1298,8 +1318,9 @@ class _ReceiptCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Returning to the card reader shortly…',
-            style: theme.textTheme.bodySmall
-                ?.copyWith(color: AppColors.inkFaint),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.inkFaint,
+            ),
           ),
           const SizedBox(height: 16),
           SizedBox(
@@ -1391,8 +1412,11 @@ class _HistoryTile extends StatelessWidget {
               color: AppColors.coinGoldSurface,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.redeem,
-                color: AppColors.coinGoldDark, size: 22),
+            child: const Icon(
+              Icons.redeem,
+              color: AppColors.coinGoldDark,
+              size: 22,
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -1408,8 +1432,9 @@ class _HistoryTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   _formatDateTime(txn.createdAt),
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: AppColors.inkFaint),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.inkFaint,
+                  ),
                 ),
               ],
             ),
@@ -1420,14 +1445,16 @@ class _HistoryTile extends StatelessWidget {
             children: [
               Text(
                 '${txn.points.abs()} pts',
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w800),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
               ),
               if (money.isNotEmpty)
                 Text(
                   money,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: AppColors.inkMuted),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: AppColors.inkMuted,
+                  ),
                 ),
               const SizedBox(height: 4),
               _TxnStatusBadge(status: txn.status),
@@ -1527,8 +1554,11 @@ class _CanteenTopBar extends StatelessWidget {
                 color: AppColors.coinGoldSurface,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.storefront,
-                  color: AppColors.coinGoldDark, size: 22),
+              child: const Icon(
+                Icons.storefront,
+                color: AppColors.coinGoldDark,
+                size: 22,
+              ),
             ),
           const SizedBox(width: 12),
           Column(
@@ -1545,10 +1575,7 @@ class _CanteenTopBar extends StatelessWidget {
               ),
               Text(
                 '${MockSeedData.canteenStaff().terminalId} · $staffName',
-                style: const TextStyle(
-                  color: AppColors.inkFaint,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: AppColors.inkFaint, fontSize: 12),
               ),
             ],
           ),
@@ -1619,8 +1646,9 @@ class _SummaryRow extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: AppColors.inkMuted),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.inkMuted,
+              ),
             ),
           ),
           const SizedBox(width: 12),
@@ -1628,13 +1656,16 @@ class _SummaryRow extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: (emphasise
-                      ? theme.textTheme.titleMedium
-                      : theme.textTheme.bodyMedium)
-                  ?.copyWith(
-                color: AppColors.ink,
-                fontWeight: emphasise ? FontWeight.w800 : FontWeight.w600,
-              ),
+              style:
+                  (emphasise
+                          ? theme.textTheme.titleMedium
+                          : theme.textTheme.bodyMedium)
+                      ?.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: emphasise
+                            ? FontWeight.w800
+                            : FontWeight.w600,
+                      ),
             ),
           ),
         ],
@@ -1679,14 +1710,18 @@ class _TxnStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (Color fg, Color bg) = switch (status) {
-      RewardTransactionStatus.completed ||
-      RewardTransactionStatus.approved =>
-        (AppColors.success, AppColors.successSurface),
-      RewardTransactionStatus.pending =>
-        (AppColors.warning, AppColors.warningSurface),
-      RewardTransactionStatus.cancelled ||
-      RewardTransactionStatus.failed =>
-        (AppColors.error, AppColors.errorSurface),
+      RewardTransactionStatus.completed || RewardTransactionStatus.approved => (
+        AppColors.success,
+        AppColors.successSurface,
+      ),
+      RewardTransactionStatus.pending => (
+        AppColors.warning,
+        AppColors.warningSurface,
+      ),
+      RewardTransactionStatus.cancelled || RewardTransactionStatus.failed => (
+        AppColors.error,
+        AppColors.errorSurface,
+      ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -1716,19 +1751,20 @@ Widget _configBuilder(
   final async = ref.watch(gamificationConfigProvider);
   return async.when(
     loading: () => const LoadingView(),
-    error: (e, _) => const ErrorView(message: 'Could not load terminal config.'),
+    error: (e, _) =>
+        const ErrorView(message: 'Could not load terminal config.'),
     data: builder,
   );
 }
 
 IconData _categoryIcon(RewardCategory category) => switch (category) {
-      RewardCategory.snack => Icons.lunch_dining_outlined,
-      RewardCategory.stationery => Icons.edit_outlined,
-      RewardCategory.housePrivilege => Icons.shield_outlined,
-      RewardCategory.raffleEntry => Icons.confirmation_number_outlined,
-      RewardCategory.avatarAccessory => Icons.face_retouching_natural_outlined,
-      RewardCategory.badge => Icons.military_tech_outlined,
-    };
+  RewardCategory.snack => Icons.lunch_dining_outlined,
+  RewardCategory.stationery => Icons.edit_outlined,
+  RewardCategory.housePrivilege => Icons.shield_outlined,
+  RewardCategory.raffleEntry => Icons.confirmation_number_outlined,
+  RewardCategory.avatarAccessory => Icons.face_retouching_natural_outlined,
+  RewardCategory.badge => Icons.military_tech_outlined,
+};
 
 String _formatDateTime(DateTime dt) {
   String two(int n) => n.toString().padLeft(2, '0');
@@ -1742,7 +1778,6 @@ final _availableRewardsProvider = FutureProvider.autoDispose<List<RewardItem>>(
 );
 
 /// All redemption history (no student filter) for the history screen.
-final _historyProvider =
-    FutureProvider.autoDispose<List<RewardTransaction>>(
+final _historyProvider = FutureProvider.autoDispose<List<RewardTransaction>>(
   (ref) => ref.watch(rewardServiceProvider).getRedemptionHistory(),
 );

@@ -8,7 +8,8 @@ import '../../../../domain/enums/waste_category.dart';
 import '../../application/kiosk_controller.dart';
 import '../widgets/kiosk_chrome.dart';
 import '../widgets/kiosk_widgets.dart';
-import '../../../../shared/components/guardian_avatar.dart';
+import '../../../../shared/world/guardian_emotion.dart';
+import '../../../../shared/world/guardian_mascot.dart';
 
 /// SCREEN 7 — Correct result. Positive green feedback + rewards + fact + slot.
 class KioskCorrectScreen extends ConsumerWidget {
@@ -29,17 +30,24 @@ class KioskCorrectScreen extends ConsumerWidget {
       icon: Icons.celebration,
       title: 'Great job, ${student.firstName}! 🎉',
       subtitle: 'You sorted it right.',
-      guardianStage: session.avatar?.stage ?? 1,
-      guardianGlowing: true,
+      guardianEmotion: GuardianEmotion.correct,
       correctCategory: outcome.correctCategory,
       selectedCategory: outcome.selected,
       showSelectedWrong: false,
       rewardBadges: [
-        _Reward('+${outcome.pointsAwarded}', 'Eco Points',
-            Icons.monetization_on, AppColors.coinGoldDark),
+        _Reward(
+          '+${outcome.pointsAwarded}',
+          'Eco Points',
+          Icons.monetization_on,
+          AppColors.coinGoldDark,
+        ),
         _Reward('+${outcome.xpAwarded}', 'XP', Icons.star, AppColors.xpPurple),
-        _Reward('+${outcome.housePoints}', 'House', Icons.groups,
-            AppColors.primary),
+        _Reward(
+          '+${outcome.housePoints}',
+          'House',
+          Icons.groups,
+          AppColors.primary,
+        ),
       ],
       bonusApplied: outcome.bonusApplied,
       bonusPoints: outcome.bonusPoints,
@@ -71,13 +79,13 @@ class KioskIncorrectScreen extends ConsumerWidget {
       icon: Icons.emoji_objects_outlined,
       title: 'Good try, ${student.firstName}!',
       subtitle: "Let's learn where it really goes.",
-      guardianStage: session.avatar?.stage ?? 1,
-      guardianGlowing: false,
+      guardianEmotion: GuardianEmotion.tryAgain,
       correctCategory: outcome.correctCategory,
       selectedCategory: outcome.selected,
       showSelectedWrong: true,
       rewardBadges: const [],
-      noPointsMessage: 'No points this time — and none taken away. '
+      noPointsMessage:
+          'No points this time — and none taken away. '
           'Every try helps you learn!',
       fact: session.classification?.explanation ?? '',
       hardwareCommandStatus: session.hardwareCommandStatus,
@@ -110,17 +118,26 @@ class KioskLowConfidenceScreen extends ConsumerWidget {
           ? 'Nice — you played it safe!'
           : "Let's use General Waste",
       subtitle: 'When I\'m not sure, General Waste keeps recycling clean.',
-      guardianStage: session.avatar?.stage ?? 1,
-      guardianGlowing: gotItRight,
+      guardianEmotion: gotItRight
+          ? GuardianEmotion.correct
+          : GuardianEmotion.tryAgain,
       correctCategory: WasteCategory.general,
       selectedCategory: outcome.selected,
       showSelectedWrong: !gotItRight,
       rewardBadges: gotItRight
           ? [
-              _Reward('+${outcome.pointsAwarded}', 'Eco Points',
-                  Icons.monetization_on, AppColors.coinGoldDark),
-              _Reward('+${outcome.xpAwarded}', 'XP', Icons.star,
-                  AppColors.xpPurple),
+              _Reward(
+                '+${outcome.pointsAwarded}',
+                'Eco Points',
+                Icons.monetization_on,
+                AppColors.coinGoldDark,
+              ),
+              _Reward(
+                '+${outcome.xpAwarded}',
+                'XP',
+                Icons.star,
+                AppColors.xpPurple,
+              ),
             ]
           : const [],
       lowConfidenceMessage:
@@ -156,8 +173,7 @@ class _FeedbackLayout extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.guardianStage,
-    required this.guardianGlowing,
+    required this.guardianEmotion,
     required this.correctCategory,
     required this.selectedCategory,
     required this.showSelectedWrong,
@@ -180,8 +196,9 @@ class _FeedbackLayout extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final int guardianStage;
-  final bool guardianGlowing;
+
+  /// Which face the Guardian wears for this outcome.
+  final GuardianEmotion guardianEmotion;
   final WasteCategory correctCategory;
   final WasteCategory selectedCategory;
   final bool showSelectedWrong;
@@ -212,12 +229,7 @@ class _FeedbackLayout extends StatelessWidget {
               children: [
                 SizedBox(
                   height: 220,
-                  child: GuardianAvatar(
-                    stage: guardianStage,
-                    size: 220,
-                    glowing: guardianGlowing,
-                    happy: !showSelectedWrong,
-                  ),
+                  child: GuardianPortrait(size: 220, emotion: guardianEmotion),
                 ),
                 const SizedBox(height: 8),
                 Icon(icon, color: accent, size: 40),
@@ -225,18 +237,17 @@ class _FeedbackLayout extends StatelessWidget {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context)
-                      .textTheme
-                      .headlineMedium
-                      ?.copyWith(color: accent),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineMedium?.copyWith(color: accent),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.inkMuted,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: AppColors.inkMuted),
                 ),
               ],
             ),
@@ -269,9 +280,7 @@ class _FeedbackLayout extends StatelessWidget {
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
-                      children: [
-                        for (final r in rewardBadges) _RewardBadge(r),
-                      ],
+                      children: [for (final r in rewardBadges) _RewardBadge(r)],
                     ),
                     if (bonusApplied)
                       Padding(
@@ -320,8 +329,10 @@ class _FeedbackLayout extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.lightbulb_outline,
-                              color: AppColors.primary),
+                          const Icon(
+                            Icons.lightbulb_outline,
+                            color: AppColors.primary,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -338,7 +349,10 @@ class _FeedbackLayout extends StatelessWidget {
                       ),
                     ),
                   const SizedBox(height: 16),
-                  _SlotCommandStatus(status: hardwareCommandStatus, category: correctCategory),
+                  _SlotCommandStatus(
+                    status: hardwareCommandStatus,
+                    category: correctCategory,
+                  ),
                   const SizedBox(height: 16),
                   KioskButton(
                     label: 'Open ${correctCategory.label} & Continue',
@@ -411,7 +425,9 @@ class _BinChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final isCorrect = state == WasteButtonState.correct;
     final colour = isCorrect ? AppColors.success : AppColors.error;
-    final surface = isCorrect ? AppColors.successSurface : AppColors.errorSurface;
+    final surface = isCorrect
+        ? AppColors.successSurface
+        : AppColors.errorSurface;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -454,10 +470,7 @@ class _BinChip extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Icon(
-            isCorrect ? Icons.check_circle : Icons.cancel,
-            color: colour,
-          ),
+          Icon(isCorrect ? Icons.check_circle : Icons.cancel, color: colour),
         ],
       ),
     );
@@ -563,23 +576,25 @@ class _SlotCommandStatus extends StatelessWidget {
   Widget build(BuildContext context) {
     final (icon, colour, label) = switch (status) {
       HardwareCommandStatus.acknowledged => (
-          Icons.check_circle,
-          AppColors.success,
-          'Bin opened — ${category.label} slot is ready',
-        ),
-      HardwareCommandStatus.sent ||
-      HardwareCommandStatus.pending =>
-        (Icons.sync, AppColors.info, 'Sending open command to the bin…'),
+        Icons.check_circle,
+        AppColors.success,
+        'Bin opened — ${category.label} slot is ready',
+      ),
+      HardwareCommandStatus.sent || HardwareCommandStatus.pending => (
+        Icons.sync,
+        AppColors.info,
+        'Sending open command to the bin…',
+      ),
       HardwareCommandStatus.failed => (
-          Icons.error_outline,
-          AppColors.error,
-          'Could not reach the bin controller',
-        ),
+        Icons.error_outline,
+        AppColors.error,
+        'Could not reach the bin controller',
+      ),
       HardwareCommandStatus.skippedOffline => (
-          Icons.cloud_off,
-          AppColors.warning,
-          'Offline — the bin will open locally',
-        ),
+        Icons.cloud_off,
+        AppColors.warning,
+        'Offline — the bin will open locally',
+      ),
     };
     return Row(
       children: [

@@ -48,8 +48,7 @@ class _TeacherStudentsScreenState extends ConsumerState<TeacherStudentsScreen> {
             return q.isEmpty ||
                 s.fullName.toLowerCase().contains(q) ||
                 s.className.toLowerCase().contains(q);
-          }).toList()
-            ..sort((a, b) => b.totalXp.compareTo(a.totalXp));
+          }).toList()..sort((a, b) => b.totalXp.compareTo(a.totalXp));
 
           return ContentBounds(
             maxWidth: 1400,
@@ -103,8 +102,7 @@ class _StudentRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () =>
-          context.go(AppRoutes.teacherStudentDetailPath(student.id)),
+      onTap: () => context.go(AppRoutes.teacherStudentDetailPath(student.id)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         child: Row(

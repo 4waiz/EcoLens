@@ -88,10 +88,12 @@ class KioskSessionState {
       student: clearStudent ? null : (student ?? this.student),
       house: clearStudent ? null : (house ?? this.house),
       avatar: clearStudent ? null : (avatar ?? this.avatar),
-      classification:
-          clearClassification ? null : (classification ?? this.classification),
-      selectedCategory:
-          clearSelected ? null : (selectedCategory ?? this.selectedCategory),
+      classification: clearClassification
+          ? null
+          : (classification ?? this.classification),
+      selectedCategory: clearSelected
+          ? null
+          : (selectedCategory ?? this.selectedCategory),
       lastOutcome: clearOutcome ? null : (lastOutcome ?? this.lastOutcome),
       session: session ?? this.session,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),

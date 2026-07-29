@@ -56,3 +56,7 @@ flutter:
     - assets/mock_data/
     - assets/images/
     - assets/icons/
+    # Generated Guardian Valley art. Source PNGs live in art_source/ (not
+    # bundled); tool/prepare_art_assets.py de-mattes and transcodes them.
+    - assets/backgrounds/
+    - assets/guardian/

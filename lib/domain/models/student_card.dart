@@ -20,8 +20,7 @@ class StudentCard with _$StudentCard {
   factory StudentCard.fromJson(Map<String, dynamic> json) =>
       _$StudentCardFromJson(json);
 
-  bool get isExpired =>
-      expiresAt != null && DateTime.now().isAfter(expiresAt!);
+  bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
 
   bool get isUsable => isActive && !isExpired;
 

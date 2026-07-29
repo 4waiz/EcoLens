@@ -10,7 +10,8 @@ import 'admin_sections.dart';
 List<RouteBase> buildAdminRoutes({
   required String? Function(dynamic, dynamic) guard,
 }) {
-  GoRouterRedirect wrap() => (context, state) => guard(context, state);
+  GoRouterRedirect wrap() =>
+      (context, state) => guard(context, state);
 
   return [
     GoRoute(

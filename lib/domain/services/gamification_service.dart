@@ -81,9 +81,8 @@ class GamificationService {
     }
 
     // Apply the daily cap to base points.
-    final remainingToday =
-        (config.dailyPointsCap - student.dailyEarnedPoints)
-            .clamp(0, config.dailyPointsCap);
+    final remainingToday = (config.dailyPointsCap - student.dailyEarnedPoints)
+        .clamp(0, config.dailyPointsCap);
     final basePoints = applyDailyCap(
       requested: config.pointsPerCorrect,
       remainingToday: remainingToday,
@@ -98,7 +97,8 @@ class GamificationService {
 
     // Streak bonus: awarded when the new streak hits a multiple of the
     // threshold (e.g. every 20 correct in a row). Bonus also respects the cap.
-    final hitsBonus = config.bonusStreakThreshold > 0 &&
+    final hitsBonus =
+        config.bonusStreakThreshold > 0 &&
         newStreak > 0 &&
         newStreak % config.bonusStreakThreshold == 0;
     final remainingAfterBase = (remainingToday - basePoints).clamp(0, 1 << 30);
@@ -119,8 +119,9 @@ class GamificationService {
         bonusPoints: bonusPoints,
       ),
       newStreak: newStreak,
-      newLongestStreak:
-          newStreak > student.longestStreak ? newStreak : student.longestStreak,
+      newLongestStreak: newStreak > student.longestStreak
+          ? newStreak
+          : student.longestStreak,
       dailyCapReached: dailyCapReached,
       bonusApplied: bonusPoints > 0,
     );
@@ -149,7 +150,10 @@ class GamificationService {
   }
 
   /// House points earned for an attempt (base + bonus contribute equally).
-  int calculateHousePoints({required int basePoints, required int bonusPoints}) {
+  int calculateHousePoints({
+    required int basePoints,
+    required int bonusPoints,
+  }) {
     return basePoints + bonusPoints;
   }
 
@@ -163,14 +167,19 @@ class GamificationService {
     required bool Function(DateTime day) isApprovedAbsence,
   }) {
     var missedActiveDays = 0;
-    var cursor = DateTime(lastActive.year, lastActive.month, lastActive.day)
-        .add(const Duration(days: 1));
+    var cursor = DateTime(
+      lastActive.year,
+      lastActive.month,
+      lastActive.day,
+    ).add(const Duration(days: 1));
     final today = DateTime(now.year, now.month, now.day);
 
     while (cursor.isBefore(today)) {
-      final isWeekend = cursor.weekday == DateTime.saturday ||
+      final isWeekend =
+          cursor.weekday == DateTime.saturday ||
           cursor.weekday == DateTime.sunday;
-      final counts = !(isWeekend && config.weekendsCountAsActive) &&
+      final counts =
+          !(isWeekend && config.weekendsCountAsActive) &&
           !(isHoliday(cursor) && config.holidaysCountAsActive) &&
           !isApprovedAbsence(cursor);
       if (counts) missedActiveDays++;
@@ -205,7 +214,8 @@ class GamificationService {
     required int totalXp,
     required List<AvatarEvolutionStage> ladder,
   }) {
-    final sorted = [...ladder]..sort((a, b) => a.minimumXp.compareTo(b.minimumXp));
+    final sorted = [...ladder]
+      ..sort((a, b) => a.minimumXp.compareTo(b.minimumXp));
     var current = sorted.first;
     for (final stage in sorted) {
       if (totalXp >= stage.minimumXp) {
@@ -227,7 +237,8 @@ class GamificationService {
     return avatar.copyWith(
       level: calculateAvatarLevel(totalXp),
       currentXp: totalXp,
-      xpRequiredForNextLevel: 25 *
+      xpRequiredForNextLevel:
+          25 *
           (calculateAvatarLevel(totalXp)) *
           (calculateAvatarLevel(totalXp)),
       stage: stage.stageIndex,

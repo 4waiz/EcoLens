@@ -61,8 +61,9 @@ class CanteenState {
     return CanteenState(
       student: clearStudent ? null : (student ?? this.student),
       house: clearHouse ? null : (house ?? this.house),
-      selectedReward:
-          clearSelectedReward ? null : (selectedReward ?? this.selectedReward),
+      selectedReward: clearSelectedReward
+          ? null
+          : (selectedReward ?? this.selectedReward),
       lastTransaction: clearLastTransaction
           ? null
           : (lastTransaction ?? this.lastTransaction),
@@ -92,15 +93,16 @@ class CanteenController extends StateNotifier<CanteenState> {
   /// inactive card) [CanteenState.error] is set and no student is stored.
   Future<bool> scanCard(String cardUid) async {
     state = state.copyWith(loading: true, clearError: true);
-    final result = await _ref.read(authServiceProvider).authenticateStudentCard(
-          cardUid,
-        );
+    final result = await _ref
+        .read(authServiceProvider)
+        .authenticateStudentCard(cardUid);
     return result.when(
       ok: (student) async {
         House? house;
         try {
-          house =
-              await _ref.read(houseRepositoryProvider).getHouseById(student.houseId);
+          house = await _ref
+              .read(houseRepositoryProvider)
+              .getHouseById(student.houseId);
         } catch (_) {
           house = null;
         }
@@ -132,7 +134,9 @@ class CanteenController extends StateNotifier<CanteenState> {
         RedemptionFailure('No student or reward selected.'),
       );
     }
-    return _ref.read(rewardServiceProvider).validateRedemption(
+    return _ref
+        .read(rewardServiceProvider)
+        .validateRedemption(
           student: student,
           item: item,
           staffId: staffId,
@@ -172,8 +176,9 @@ class CanteenController extends StateNotifier<CanteenState> {
         final txn = await rewardService.createRedemption(request);
         // The reward repository debits points on a completed transaction, so the
         // held student is now stale — reload for an accurate new balance.
-        final refreshed =
-            await _ref.read(studentRepositoryProvider).getStudentById(student.id);
+        final refreshed = await _ref
+            .read(studentRepositoryProvider)
+            .getStudentById(student.id);
         state = state.copyWith(
           student: refreshed ?? student,
           lastTransaction: txn,
@@ -204,5 +209,5 @@ class CanteenController extends StateNotifier<CanteenState> {
 /// Shared canteen-flow state for every terminal screen.
 final canteenControllerProvider =
     StateNotifierProvider<CanteenController, CanteenState>(
-  CanteenController.new,
-);
+      CanteenController.new,
+    );

@@ -78,7 +78,9 @@ class _OverviewBody extends StatelessWidget {
                       const SizedBox(height: 16),
                       SizedBox(
                         height: 220,
-                        child: _ParticipationChart(points: overview.participationTrend),
+                        child: _ParticipationChart(
+                          points: overview.participationTrend,
+                        ),
                       ),
                     ],
                   ),
@@ -113,7 +115,9 @@ class _OverviewBody extends StatelessWidget {
                   icon: Icons.class_outlined,
                   items: overview.topClasses,
                 );
-                final mistakes = _CommonMistakesCard(mistakes: overview.commonMistakes);
+                final mistakes = _CommonMistakesCard(
+                  mistakes: overview.commonMistakes,
+                );
                 if (!wide) {
                   return Column(
                     children: [
@@ -154,8 +158,11 @@ class _ParticipationChart extends StatelessWidget {
     if (points.isEmpty) {
       return const EmptyView(title: 'No activity yet');
     }
-    final maxY = points.map((p) => p.value).fold<double>(0, (a, b) => b > a ? b : a);
+    final maxY = points
+        .map((p) => p.value)
+        .fold<double>(0, (a, b) => b > a ? b : a);
     return BarChart(
+      duration: Duration.zero, // instant render (test-safe, no looping anim)
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
         maxY: (maxY * 1.3).clamp(5, double.infinity),
@@ -170,8 +177,12 @@ class _ParticipationChart extends StatelessWidget {
           leftTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: true, reservedSize: 30),
           ),
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -180,8 +191,10 @@ class _ParticipationChart extends StatelessWidget {
                 if (i < 0 || i >= points.length) return const SizedBox.shrink();
                 return Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text(points[i].label,
-                      style: Theme.of(context).textTheme.bodySmall),
+                  child: Text(
+                    points[i].label,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 );
               },
             ),
@@ -220,10 +233,7 @@ class _RatesCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(
-            title: 'Key rates',
-            icon: Icons.speed,
-          ),
+          const SectionHeader(title: 'Key rates', icon: Icons.speed),
           const SizedBox(height: 20),
           _RadialRate(
             label: 'Correct classification',
@@ -338,8 +348,9 @@ class _TopList extends StatelessWidget {
                         value: item.progress,
                         minHeight: 8,
                         backgroundColor: AppColors.border,
-                        valueColor:
-                            AlwaysStoppedAnimation(AppColors.fromHex(item.colour)),
+                        valueColor: AlwaysStoppedAnimation(
+                          AppColors.fromHex(item.colour),
+                        ),
                       ),
                     ),
                   ],
@@ -378,12 +389,21 @@ class _CommonMistakesCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
                   children: [
-                    Icon(m.chosenCategory.icon,
-                        color: m.chosenCategory.colour, size: 20),
-                    const Icon(Icons.arrow_forward,
-                        size: 16, color: AppColors.inkFaint),
-                    Icon(m.correctCategory.icon,
-                        color: m.correctCategory.colour, size: 20),
+                    Icon(
+                      m.chosenCategory.icon,
+                      color: m.chosenCategory.colour,
+                      size: 20,
+                    ),
+                    const Icon(
+                      Icons.arrow_forward,
+                      size: 16,
+                      color: AppColors.inkFaint,
+                    ),
+                    Icon(
+                      m.correctCategory.icon,
+                      color: m.correctCategory.colour,
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -395,7 +415,9 @@ class _CommonMistakesCard extends StatelessWidget {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.errorSurface,
                         borderRadius: BorderRadius.circular(999),

@@ -48,12 +48,15 @@ class GuardianPainter extends CustomPainter {
     // ---- Cosmic glow halo ----
     if (glow > 0) {
       final glowPaint = Paint()
-        ..shader = RadialGradient(
-          colors: [
-            AppColors.guardianLeaf.withValues(alpha: 0.5 * glow),
-            AppColors.guardianLeaf.withValues(alpha: 0.0),
-          ],
-        ).createShader(Rect.fromCircle(center: bodyCenter, radius: bodyR * 2.6));
+        ..shader =
+            RadialGradient(
+              colors: [
+                AppColors.guardianLeaf.withValues(alpha: 0.5 * glow),
+                AppColors.guardianLeaf.withValues(alpha: 0.0),
+              ],
+            ).createShader(
+              Rect.fromCircle(center: bodyCenter, radius: bodyR * 2.6),
+            );
       canvas.drawCircle(bodyCenter, bodyR * 2.6, glowPaint);
     }
 
@@ -96,7 +99,11 @@ class GuardianPainter extends CustomPainter {
     _paintCrown(canvas, Offset(cx, bodyCenter.dy - bodyR * 0.95), bodyR);
 
     // ---- Recycling emblem on chest ----
-    _paintRecycleEmblem(canvas, bodyCenter.translate(0, bodyR * 0.35), bodyR * 0.42);
+    _paintRecycleEmblem(
+      canvas,
+      bodyCenter.translate(0, bodyR * 0.35),
+      bodyR * 0.42,
+    );
 
     // ---- Arms ----
     _paintArms(canvas, bodyCenter, bodyR);
@@ -110,7 +117,8 @@ class GuardianPainter extends CustomPainter {
 
   void _paintBackdrop(Canvas canvas, Size size, Offset c, double bodyR) {
     // A soft rounded green wash behind the creature (like the references).
-    final blob = Paint()..color = AppColors.primarySurface.withValues(alpha: 0.7);
+    final blob = Paint()
+      ..color = AppColors.primarySurface.withValues(alpha: 0.7);
     canvas.drawOval(
       Rect.fromCenter(
         center: c.translate(0, -bodyR * 0.1),
@@ -161,12 +169,16 @@ class GuardianPainter extends CustomPainter {
     final path = Path()
       ..moveTo(c.dx - bodyR * 0.4, c.dy - bodyR * 0.9)
       ..quadraticBezierTo(
-        c.dx + bodyR * 1.6, c.dy - bodyR * 0.2,
-        c.dx + bodyR * 0.9, c.dy + bodyR * 1.25,
+        c.dx + bodyR * 1.6,
+        c.dy - bodyR * 0.2,
+        c.dx + bodyR * 0.9,
+        c.dy + bodyR * 1.25,
       )
       ..quadraticBezierTo(
-        c.dx + bodyR * 0.2, c.dy + bodyR * 0.9,
-        c.dx - bodyR * 0.4, c.dy + bodyR * 1.0,
+        c.dx + bodyR * 0.2,
+        c.dy + bodyR * 0.9,
+        c.dx - bodyR * 0.4,
+        c.dy + bodyR * 1.0,
       )
       ..close();
     canvas.drawPath(
@@ -210,9 +222,7 @@ class GuardianPainter extends CustomPainter {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [Color(0xFF8BD44F), Color(0xFF5BA637)],
-      ).createShader(
-        Rect.fromCircle(center: base, radius: bodyR),
-      );
+      ).createShader(Rect.fromCircle(center: base, radius: bodyR));
 
     // Several leaves fanning out like hair.
     void oneLeaf(double angle, double len, double width) {
@@ -244,7 +254,11 @@ class GuardianPainter extends CustomPainter {
   }
 
   void _paintRecycleEmblem(Canvas canvas, Offset c, double r) {
-    canvas.drawCircle(c, r, Paint()..color = Colors.white.withValues(alpha: 0.92));
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()..color = Colors.white.withValues(alpha: 0.92),
+    );
     final arrow = Paint()
       ..color = _bodyGreenDark
       ..style = PaintingStyle.stroke
@@ -334,13 +348,18 @@ class GuardianPainter extends CustomPainter {
     }
 
     // Rosy cheeks.
-    final cheek = Paint()..color = const Color(0xFFF48FB1).withValues(alpha: 0.5);
+    final cheek = Paint()
+      ..color = const Color(0xFFF48FB1).withValues(alpha: 0.5);
     canvas.drawCircle(
-        Offset(faceCenter.dx - eyeDx - eyeR * 0.3, eyeY + eyeR * 1.5),
-        eyeR * 0.62, cheek);
+      Offset(faceCenter.dx - eyeDx - eyeR * 0.3, eyeY + eyeR * 1.5),
+      eyeR * 0.62,
+      cheek,
+    );
     canvas.drawCircle(
-        Offset(faceCenter.dx + eyeDx + eyeR * 0.3, eyeY + eyeR * 1.5),
-        eyeR * 0.62, cheek);
+      Offset(faceCenter.dx + eyeDx + eyeR * 0.3, eyeY + eyeR * 1.5),
+      eyeR * 0.62,
+      cheek,
+    );
 
     // Smile.
     final mouth = Paint()
@@ -365,7 +384,8 @@ class GuardianPainter extends CustomPainter {
   }
 
   void _paintSparkles(Canvas canvas, Size size, Offset c, double bodyR) {
-    final sparkle = Paint()..color = AppColors.guardianLeaf.withValues(alpha: 0.7);
+    final sparkle = Paint()
+      ..color = AppColors.guardianLeaf.withValues(alpha: 0.7);
     void star(Offset o, double s) {
       final path = Path()
         ..moveTo(o.dx, o.dy - s)
@@ -385,7 +405,12 @@ class GuardianPainter extends CustomPainter {
 
     // Floating leaves for higher stages.
     if (stage >= 2) {
-      _leaf(canvas, c.translate(-bodyR * 1.5, -bodyR * 0.8), bodyR * 0.28, -0.4);
+      _leaf(
+        canvas,
+        c.translate(-bodyR * 1.5, -bodyR * 0.8),
+        bodyR * 0.28,
+        -0.4,
+      );
       _leaf(canvas, c.translate(bodyR * 1.55, bodyR * 0.5), bodyR * 0.24, 0.6);
     }
     if (stage >= 4) {
@@ -402,7 +427,10 @@ class GuardianPainter extends CustomPainter {
       ..quadraticBezierTo(s * 0.8, 0, 0, s)
       ..quadraticBezierTo(-s * 0.8, 0, 0, -s)
       ..close();
-    canvas.drawPath(path, Paint()..color = AppColors.guardianLeaf.withValues(alpha: 0.55));
+    canvas.drawPath(
+      path,
+      Paint()..color = AppColors.guardianLeaf.withValues(alpha: 0.55),
+    );
     canvas.restore();
   }
 

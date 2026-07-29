@@ -16,16 +16,16 @@ void main() {
   });
 
   RecyclingSession session(String key) => RecyclingSession(
-        id: 'sess-$key',
-        studentId: 'stu-liam',
-        kioskId: 'KIOSK-OAK-01',
-        startedAt: DateTime(2026, 7, 21),
-        finalCategory: WasteCategory.plastic,
-        wasCorrect: true,
-        pointsAwarded: 5,
-        status: SessionStatus.queuedOffline,
-        idempotencyKey: key,
-      );
+    id: 'sess-$key',
+    studentId: 'stu-liam',
+    kioskId: 'KIOSK-OAK-01',
+    startedAt: DateTime(2026, 7, 21),
+    finalCategory: WasteCategory.plastic,
+    wasCorrect: true,
+    pointsAwarded: 5,
+    status: SessionStatus.queuedOffline,
+    idempotencyKey: key,
+  );
 
   test('sessions can be enqueued while offline', () async {
     await repo.enqueueSession(session('a'));

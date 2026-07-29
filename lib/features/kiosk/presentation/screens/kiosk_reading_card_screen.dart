@@ -36,8 +36,11 @@ class KioskReadingCardScreen extends ConsumerWidget {
                   color: AppColors.warningSurface,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.credit_card_off,
-                    size: 46, color: AppColors.warning),
+                child: const Icon(
+                  Icons.credit_card_off,
+                  size: 46,
+                  color: AppColors.warning,
+                ),
               ),
               const SizedBox(height: 24),
               Text(
@@ -49,9 +52,9 @@ class KioskReadingCardScreen extends ConsumerWidget {
               Text(
                 session.errorMessage ??
                     'Please try again, or ask a teacher for help.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.inkMuted,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.inkMuted),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 28),
@@ -82,9 +85,7 @@ class KioskReadingCardScreen extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: 24),
-              const GuardianSpeech(
-                text: "Hold tight — I'm looking you up!",
-              ),
+              const GuardianSpeech(text: "Hold tight — I'm looking you up!"),
             ],
           ],
         ),

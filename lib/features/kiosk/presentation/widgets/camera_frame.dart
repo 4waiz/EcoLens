@@ -81,10 +81,9 @@ class _CameraFrameState extends State<CameraFrame>
           const SizedBox(height: 12),
           Text(
             'Camera unavailable',
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(color: AppColors.error),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: AppColors.error),
           ),
           const SizedBox(height: 4),
           Text(
@@ -126,8 +125,10 @@ class _CameraFrameState extends State<CameraFrame>
             right: 0,
             child: Center(
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(999),
@@ -168,11 +169,7 @@ class _CameraFrameState extends State<CameraFrame>
             },
           ),
         if (widget.capturing)
-          const Positioned(
-            top: 12,
-            right: 12,
-            child: _RecDot(),
-          ),
+          const Positioned(top: 12, right: 12, child: _RecDot()),
       ],
     );
   }
@@ -180,15 +177,15 @@ class _CameraFrameState extends State<CameraFrame>
   Widget _corners() {
     const c = AppColors.guardianLeaf;
     Widget corner(Alignment a) => Align(
-          alignment: a,
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: CustomPaint(
-              size: const Size(28, 28),
-              painter: _CornerPainter(a, c),
-            ),
-          ),
-        );
+      alignment: a,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: CustomPaint(
+          size: const Size(28, 28),
+          painter: _CornerPainter(a, c),
+        ),
+      ),
+    );
     return Stack(
       children: [
         corner(Alignment.topLeft),

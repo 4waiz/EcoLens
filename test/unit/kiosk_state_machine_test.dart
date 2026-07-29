@@ -38,13 +38,15 @@ void main() {
         isTrue,
       );
       expect(
-        KioskState.processingAnswer
-            .canTransitionTo(KioskState.incorrectFeedback),
+        KioskState.processingAnswer.canTransitionTo(
+          KioskState.incorrectFeedback,
+        ),
         isTrue,
       );
       expect(
-        KioskState.processingAnswer
-            .canTransitionTo(KioskState.lowConfidenceFeedback),
+        KioskState.processingAnswer.canTransitionTo(
+          KioskState.lowConfidenceFeedback,
+        ),
         isTrue,
       );
     });
@@ -74,8 +76,9 @@ void main() {
 
     test('waitingForStudentAnswer cannot skip processing', () {
       expect(
-        KioskState.waitingForStudentAnswer
-            .canTransitionTo(KioskState.correctFeedback),
+        KioskState.waitingForStudentAnswer.canTransitionTo(
+          KioskState.correctFeedback,
+        ),
         isFalse,
       );
     });

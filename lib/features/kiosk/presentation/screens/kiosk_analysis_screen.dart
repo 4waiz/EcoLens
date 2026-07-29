@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../shared/components/guardian_avatar.dart';
 import '../../application/kiosk_controller.dart';
 import '../widgets/camera_frame.dart';
+import '../../../../shared/world/guardian_emotion.dart';
+import '../../../../shared/world/guardian_mascot.dart';
 
 /// SCREEN 5 — AI analysis.
 ///
@@ -78,8 +79,10 @@ class _KioskAnalysisScreenState extends ConsumerState<KioskAnalysisScreen> {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.xpPurpleSurface,
                     borderRadius: BorderRadius.circular(999),
@@ -87,8 +90,11 @@ class _KioskAnalysisScreenState extends ConsumerState<KioskAnalysisScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
-                      Icon(Icons.auto_awesome,
-                          color: AppColors.xpPurple, size: 18),
+                      Icon(
+                        Icons.auto_awesome,
+                        color: AppColors.xpPurple,
+                        size: 18,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'AI analysis in progress · almost there!',
@@ -113,8 +119,11 @@ class _KioskAnalysisScreenState extends ConsumerState<KioskAnalysisScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.auto_awesome,
-                        color: AppColors.xpPurple, size: 28),
+                    const Icon(
+                      Icons.auto_awesome,
+                      color: AppColors.xpPurple,
+                      size: 28,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text.rich(
@@ -136,7 +145,10 @@ class _KioskAnalysisScreenState extends ConsumerState<KioskAnalysisScreen> {
                     const SizedBox(
                       width: 64,
                       height: 64,
-                      child: GuardianAvatar(stage: 2, size: 64, bob: false),
+                      child: GuardianPortrait(
+                        size: 64,
+                        emotion: GuardianEmotion.thinking,
+                      ),
                     ),
                   ],
                 ),
@@ -155,17 +167,20 @@ class _KioskAnalysisScreenState extends ConsumerState<KioskAnalysisScreen> {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Text('Analysing item…',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(color: AppColors.xpPurpleDark)),
+                    Text(
+                      'Analysing item…',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.xpPurpleDark,
+                      ),
+                    ),
                     const Spacer(),
-                    Text('$progress%',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w800,
-                            )),
+                    Text(
+                      '$progress%',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -175,8 +190,7 @@ class _KioskAnalysisScreenState extends ConsumerState<KioskAnalysisScreen> {
                     value: _step / _steps.length,
                     minHeight: 12,
                     backgroundColor: AppColors.border,
-                    valueColor:
-                        const AlwaysStoppedAnimation(AppColors.primary),
+                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
                   ),
                 ),
               ],
@@ -226,8 +240,8 @@ class _ChecklistRow extends StatelessWidget {
               color: done
                   ? AppColors.successSurface
                   : active
-                      ? AppColors.xpPurpleSurface
-                      : AppColors.surfaceAlt,
+                  ? AppColors.xpPurpleSurface
+                  : AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -235,8 +249,8 @@ class _ChecklistRow extends StatelessWidget {
               color: done
                   ? AppColors.success
                   : active
-                      ? AppColors.xpPurple
-                      : AppColors.inkFaint,
+                  ? AppColors.xpPurple
+                  : AppColors.inkFaint,
               size: 22,
             ),
           ),
@@ -264,12 +278,17 @@ class _ChecklistRow extends StatelessWidget {
             width: 28,
             height: 28,
             child: done
-                ? const Icon(Icons.check_circle,
-                    color: AppColors.success, size: 26)
+                ? const Icon(
+                    Icons.check_circle,
+                    color: AppColors.success,
+                    size: 26,
+                  )
                 : active
-                    ? const CircularProgressIndicator(
-                        strokeWidth: 3, color: AppColors.xpPurple)
-                    : const SizedBox.shrink(),
+                ? const CircularProgressIndicator(
+                    strokeWidth: 3,
+                    color: AppColors.xpPurple,
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),

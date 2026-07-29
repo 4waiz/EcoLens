@@ -51,10 +51,9 @@ class LeaderboardService {
     for (final s in students) {
       byClass[s.className] = (byClass[s.className] ?? 0) + s.totalXp;
     }
-    final ranked = classes
-        .map((c) => MapEntry(c, byClass[c.name] ?? 0))
-        .toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+    final ranked =
+        classes.map((c) => MapEntry(c, byClass[c.name] ?? 0)).toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
     return ranked.asMap().entries.map((e) {
       final SchoolClass c = e.value.key;
       return LeaderboardEntry(
@@ -93,8 +92,7 @@ class LeaderboardService {
 
   /// Weekly movement for a house: change in rank position vs last week.
   int calculateWeeklyMovement(House house, List<House> lastWeekRanking) {
-    final lastIndex =
-        lastWeekRanking.indexWhere((h) => h.id == house.id);
+    final lastIndex = lastWeekRanking.indexWhere((h) => h.id == house.id);
     if (lastIndex < 0) return 0;
     final current = [...lastWeekRanking]
       ..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));

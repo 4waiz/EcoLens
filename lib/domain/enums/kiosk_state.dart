@@ -100,10 +100,7 @@ extension KioskStateX on KioskState {
       KioskState.idle,
       KioskState.error,
     },
-    KioskState.studentNotFound => {
-      KioskState.waitingForCard,
-      KioskState.idle,
-    },
+    KioskState.studentNotFound => {KioskState.waitingForCard, KioskState.idle},
     KioskState.studentRecognised => {
       KioskState.readyToScan,
       KioskState.houseLeaderboard,

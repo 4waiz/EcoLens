@@ -24,10 +24,15 @@ import 'providers.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authServiceProvider);
 
-  String? guard(BuildContext context, GoRouterState state, UserRole required,
-      String loginPath) {
+  String? guard(
+    BuildContext context,
+    GoRouterState state,
+    UserRole required,
+    String loginPath,
+  ) {
     final session = auth.getCurrentSession();
-    final authed = session != null && session.isValid && session.role == required;
+    final authed =
+        session != null && session.isValid && session.role == required;
     final atLogin = state.matchedLocation == loginPath;
     if (!authed && !atLogin) return loginPath;
     if (authed && atLogin) {

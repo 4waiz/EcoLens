@@ -74,6 +74,5 @@ class AuthSession with _$AuthSession {
   factory AuthSession.fromJson(Map<String, dynamic> json) =>
       _$AuthSessionFromJson(json);
 
-  bool get isValid =>
-      expiresAt == null || DateTime.now().isBefore(expiresAt!);
+  bool get isValid => expiresAt == null || DateTime.now().isBefore(expiresAt!);
 }

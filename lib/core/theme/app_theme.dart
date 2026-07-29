@@ -29,7 +29,10 @@ abstract final class AppTheme {
       outlineVariant: AppColors.borderStrong,
     );
 
-    final textTheme = AppTypography.textTheme(AppColors.ink, AppColors.inkMuted);
+    final textTheme = AppTypography.textTheme(
+      AppColors.ink,
+      AppColors.inkMuted,
+    );
 
     return ThemeData(
       useMaterial3: true,
@@ -122,9 +125,7 @@ abstract final class AppTheme {
           color: AppColors.primaryDark,
         ),
         side: BorderSide.none,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       dividerTheme: const DividerThemeData(
         color: AppColors.border,
@@ -143,17 +144,13 @@ abstract final class AppTheme {
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: AppColors.ink,
         contentTextStyle: const TextStyle(color: Colors.white),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       tooltipTheme: const TooltipThemeData(preferBelow: false),
     );
@@ -181,18 +178,10 @@ abstract final class AppSpacing {
 /// Soft card shadow used on elevated surfaces (kiosk stat cards, dashboards).
 abstract final class AppShadows {
   static const List<BoxShadow> card = [
-    BoxShadow(
-      color: Color(0x14000000),
-      blurRadius: 24,
-      offset: Offset(0, 8),
-    ),
+    BoxShadow(color: Color(0x14000000), blurRadius: 24, offset: Offset(0, 8)),
   ];
 
   static const List<BoxShadow> soft = [
-    BoxShadow(
-      color: Color(0x0F000000),
-      blurRadius: 12,
-      offset: Offset(0, 4),
-    ),
+    BoxShadow(color: Color(0x0F000000), blurRadius: 12, offset: Offset(0, 4)),
   ];
 }

@@ -177,8 +177,9 @@ class _NavList extends StatelessWidget {
                                     fontWeight: selected
                                         ? FontWeight.w700
                                         : FontWeight.w500,
-                                    color:
-                                        selected ? accent : AppColors.inkMuted,
+                                    color: selected
+                                        ? accent
+                                        : AppColors.inkMuted,
                                   ),
                                 ),
                               ),
@@ -307,10 +308,7 @@ class _UserMenu extends StatelessWidget {
               ),
               Text(
                 roleLabel,
-                style: const TextStyle(
-                  color: AppColors.inkFaint,
-                  fontSize: 12,
-                ),
+                style: const TextStyle(color: AppColors.inkFaint, fontSize: 12),
               ),
             ],
           ),

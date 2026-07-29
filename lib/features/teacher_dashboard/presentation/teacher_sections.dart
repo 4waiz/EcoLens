@@ -25,7 +25,7 @@ final _classesProvider = FutureProvider.autoDispose((ref) async {
     final acc = members.isEmpty
         ? 0.0
         : members.map((s) => s.accuracy).reduce((a, b) => a + b) /
-            members.length;
+              members.length;
     return (schoolClass: c, members: members.length, xp: xp, accuracy: acc);
   }).toList();
 });
@@ -58,15 +58,19 @@ class TeacherClassesScreen extends ConsumerWidget {
                         children: [
                           CircleAvatar(
                             backgroundColor: AppColors.primarySurface,
-                            child: Text('${r.schoolClass.grade}',
-                                style: const TextStyle(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w700)),
+                            child: Text(
+                              '${r.schoolClass.grade}',
+                              style: const TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 12),
-                          Text('Class ${r.schoolClass.name}',
-                              style:
-                                  Theme.of(context).textTheme.titleLarge),
+                          Text(
+                            'Class ${r.schoolClass.name}',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                         ],
                       ),
                       const Spacer(),
@@ -89,14 +93,15 @@ class TeacherClassesScreen extends ConsumerWidget {
   }
 
   Widget _kv(String k, String v) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(v,
-              style: const TextStyle(
-                  fontSize: 22, fontWeight: FontWeight.w800)),
-          Text(k, style: const TextStyle(color: AppColors.inkMuted)),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        v,
+        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+      ),
+      Text(k, style: const TextStyle(color: AppColors.inkMuted)),
+    ],
+  );
 }
 
 // -----------------------------------------------------------------------------
@@ -153,13 +158,19 @@ class _HouseCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${house.name} House',
-                    style: Theme.of(context).textTheme.titleLarge),
-                Text('${house.totalPoints} points · rank #${house.leaderboardPosition}',
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  '${house.name} House',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                Text(
+                  '${house.totalPoints} points · rank #${house.leaderboardPosition}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 const SizedBox(height: 8),
-                Text(house.sustainabilityGoal,
-                    style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  house.sustainabilityGoal,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
                 const SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(999),
@@ -171,8 +182,10 @@ class _HouseCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text('${(house.goalProgress * 100).round()}% to goal',
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  '${(house.goalProgress * 100).round()}% to goal',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -204,7 +217,8 @@ class TeacherLeaderboardsScreen extends ConsumerWidget {
       currentRoute: AppRoutes.teacherLeaderboards,
       child: async.when(
         loading: () => const LoadingView(),
-        error: (e, _) => const ErrorView(message: 'Could not load leaderboards.'),
+        error: (e, _) =>
+            const ErrorView(message: 'Could not load leaderboards.'),
         data: (data) => DefaultTabController(
           length: 3,
           child: Column(
@@ -257,33 +271,46 @@ class _LeaderboardList extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 36,
-                  child: Text('#${e.rank}',
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 18)),
+                  child: Text(
+                    '#${e.rank}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                    ),
+                  ),
                 ),
                 CircleAvatar(
                   radius: 18,
                   backgroundColor: colour.withValues(alpha: 0.15),
-                  child: Text(e.entityName.characters.first,
-                      style: TextStyle(
-                          color: colour, fontWeight: FontWeight.w700)),
+                  child: Text(
+                    e.entityName.characters.first,
+                    style: TextStyle(
+                      color: colour,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(e.entityName,
-                          style: const TextStyle(fontWeight: FontWeight.w700)),
+                      Text(
+                        e.entityName,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
                       if (e.subtitle.isNotEmpty)
-                        Text(e.subtitle,
-                            style: Theme.of(context).textTheme.bodySmall),
+                        Text(
+                          e.subtitle,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
                     ],
                   ),
                 ),
-                Text('${e.totalPoints} pts',
-                    style: TextStyle(
-                        fontWeight: FontWeight.w800, color: colour)),
+                Text(
+                  '${e.totalPoints} pts',
+                  style: TextStyle(fontWeight: FontWeight.w800, color: colour),
+                ),
               ],
             ),
           );
@@ -329,15 +356,20 @@ class TeacherAccuracyScreen extends ConsumerWidget {
                             CircularProgressIndicator(
                               value: m.overallAccuracy,
                               strokeWidth: 10,
-                              backgroundColor:
-                                  AppColors.success.withValues(alpha: 0.15),
+                              backgroundColor: AppColors.success.withValues(
+                                alpha: 0.15,
+                              ),
                               valueColor: const AlwaysStoppedAnimation(
-                                  AppColors.success),
+                                AppColors.success,
+                              ),
                             ),
-                            Text('${(m.overallAccuracy * 100).round()}%',
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 20)),
+                            Text(
+                              '${(m.overallAccuracy * 100).round()}%',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 20,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -346,13 +378,14 @@ class TeacherAccuracyScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Overall classification accuracy',
-                                style:
-                                    Theme.of(context).textTheme.titleLarge),
                             Text(
-                                'Across all recorded recycling sessions this term.',
-                                style:
-                                    Theme.of(context).textTheme.bodyMedium),
+                              'Overall classification accuracy',
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
+                            Text(
+                              'Across all recorded recycling sessions this term.',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
                           ],
                         ),
                       ),
@@ -365,8 +398,9 @@ class TeacherAccuracyScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SectionHeader(
-                          title: 'Accuracy by category',
-                          icon: Icons.category_outlined),
+                        title: 'Accuracy by category',
+                        icon: Icons.category_outlined,
+                      ),
                       const SizedBox(height: 20),
                       SizedBox(
                         height: 200,
@@ -395,6 +429,7 @@ class _CategoryAccuracyChart extends StatelessWidget {
   Widget build(BuildContext context) {
     if (data.isEmpty) return const EmptyView(title: 'No data');
     return BarChart(
+      duration: Duration.zero,
       BarChartData(
         maxY: 100,
         alignment: BarChartAlignment.spaceAround,
@@ -407,11 +442,14 @@ class _CategoryAccuracyChart extends StatelessWidget {
         borderData: FlBorderData(show: false),
         titlesData: FlTitlesData(
           leftTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: true, reservedSize: 32)),
-          rightTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles:
-              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            sideTitles: SideTitles(showTitles: true, reservedSize: 32),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -420,8 +458,10 @@ class _CategoryAccuracyChart extends StatelessWidget {
                 if (i < 0 || i >= data.length) return const SizedBox.shrink();
                 return Padding(
                   padding: const EdgeInsets.only(top: 6),
-                  child: Text(data[i].category.shortLabel,
-                      style: Theme.of(context).textTheme.bodySmall),
+                  child: Text(
+                    data[i].category.shortLabel,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 );
               },
             ),
@@ -429,14 +469,17 @@ class _CategoryAccuracyChart extends StatelessWidget {
         ),
         barGroups: [
           for (var i = 0; i < data.length; i++)
-            BarChartGroupData(x: i, barRods: [
-              BarChartRodData(
-                toY: data[i].accuracy * 100,
-                width: 30,
-                borderRadius: BorderRadius.circular(6),
-                color: data[i].category.colour,
-              ),
-            ]),
+            BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(
+                  toY: data[i].accuracy * 100,
+                  width: 30,
+                  borderRadius: BorderRadius.circular(6),
+                  color: data[i].category.colour,
+                ),
+              ],
+            ),
         ],
       ),
     );
@@ -454,8 +497,9 @@ class _MistakesCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SectionHeader(
-              title: 'Most common mistakes',
-              icon: Icons.psychology_alt_outlined),
+            title: 'Most common mistakes',
+            icon: Icons.psychology_alt_outlined,
+          ),
           const SizedBox(height: 12),
           if (mistakes.isEmpty)
             const Text('No mistakes recorded.')
@@ -465,12 +509,21 @@ class _MistakesCard extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Row(
                   children: [
-                    Icon(m.chosenCategory.icon,
-                        color: m.chosenCategory.colour, size: 20),
-                    const Icon(Icons.arrow_forward,
-                        size: 16, color: AppColors.inkFaint),
-                    Icon(m.correctCategory.icon,
-                        color: m.correctCategory.colour, size: 20),
+                    Icon(
+                      m.chosenCategory.icon,
+                      color: m.chosenCategory.colour,
+                      size: 20,
+                    ),
+                    const Icon(
+                      Icons.arrow_forward,
+                      size: 16,
+                      color: AppColors.inkFaint,
+                    ),
+                    Icon(
+                      m.correctCategory.icon,
+                      color: m.correctCategory.colour,
+                      size: 20,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
@@ -524,9 +577,7 @@ class TeacherRewardsScreen extends ConsumerWidget {
                         leading: CircleAvatar(
                           backgroundColor: AppColors.coinGoldSurface,
                           child: Icon(
-                            t.isDebit
-                                ? Icons.redeem
-                                : Icons.add_circle_outline,
+                            t.isDebit ? Icons.redeem : Icons.add_circle_outline,
                             color: AppColors.coinGoldDark,
                           ),
                         ),
@@ -591,12 +642,18 @@ class _TeacherReportsScreenState extends ConsumerState<TeacherReportsScreen> {
                       spacing: 12,
                       runSpacing: 12,
                       children: [
-                        _dropdown('Date range', _range,
-                            ['Today', 'This week', 'This month', 'This term'],
-                            (v) => setState(() => _range = v)),
-                        _dropdown('Class', _classFilter,
-                            ['All classes', '4A', '4B', '5A', '5B'],
-                            (v) => setState(() => _classFilter = v)),
+                        _dropdown('Date range', _range, [
+                          'Today',
+                          'This week',
+                          'This month',
+                          'This term',
+                        ], (v) => setState(() => _range = v)),
+                        _dropdown(
+                          'Class',
+                          _classFilter,
+                          ['All classes', '4A', '4B', '5A', '5B'],
+                          (v) => setState(() => _classFilter = v),
+                        ),
                         _categoryDropdown(),
                       ],
                     ),
@@ -608,7 +665,8 @@ class _TeacherReportsScreenState extends ConsumerState<TeacherReportsScreen> {
                           icon: const Icon(Icons.download),
                           label: const Text('Export CSV'),
                           style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.info),
+                            backgroundColor: AppColors.info,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         OutlinedButton.icon(
@@ -641,8 +699,12 @@ class _TeacherReportsScreenState extends ConsumerState<TeacherReportsScreen> {
     );
   }
 
-  Widget _dropdown(String label, String value, List<String> items,
-      ValueChanged<String> onChanged) {
+  Widget _dropdown(
+    String label,
+    String value,
+    List<String> items,
+    ValueChanged<String> onChanged,
+  ) {
     return SizedBox(
       width: 220,
       child: DropdownButtonFormField<String>(
@@ -675,10 +737,12 @@ class _TeacherReportsScreenState extends ConsumerState<TeacherReportsScreen> {
   void _simulateExport(BuildContext context, String kind) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(kind == 'print'
-            ? 'Preparing a printable report ($_range · $_classFilter)…'
-            : 'Exported $kind report ($_range · $_classFilter). '
-                '(Simulated in the MVP.)'),
+        content: Text(
+          kind == 'print'
+              ? 'Preparing a printable report ($_range · $_classFilter)…'
+              : 'Exported $kind report ($_range · $_classFilter). '
+                    '(Simulated in the MVP.)',
+        ),
       ),
     );
   }
@@ -699,14 +763,12 @@ class _ReportPreview extends ConsumerWidget {
     final sessionsAsync = ref.watch(_reportSessionsProvider);
     return EcoCard(
       child: sessionsAsync.when(
-        loading: () => const SizedBox(
-          height: 120,
-          child: LoadingView(),
-        ),
+        loading: () => const SizedBox(height: 120, child: LoadingView()),
         error: (e, _) => const Text('Could not load report data.'),
         data: (sessions) {
           var rows = sessions.where((s) {
-            final okClass = classFilter == 'All classes' ||
+            final okClass =
+                classFilter == 'All classes' ||
                 (s.$2?.className == classFilter);
             final okCat = category == null || s.$1.finalCategory == category;
             return okClass && okCat;
@@ -717,11 +779,15 @@ class _ReportPreview extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  Text('Preview · $range',
-                      style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    'Preview · $range',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const Spacer(),
-                  Text('${rows.length} sessions · $correct correct',
-                      style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    '${rows.length} sessions · $correct correct',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -734,8 +800,7 @@ class _ReportPreview extends ConsumerWidget {
     );
   }
 
-  Widget _table(BuildContext context,
-      List<(RecyclingSession, Student?)> rows) {
+  Widget _table(BuildContext context, List<(RecyclingSession, Student?)> rows) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
@@ -749,20 +814,28 @@ class _ReportPreview extends ConsumerWidget {
         ],
         rows: [
           for (final r in rows)
-            DataRow(cells: [
-              DataCell(Text(r.$2?.firstName ?? '—')),
-              DataCell(Text(r.$2?.className ?? '—')),
-              DataCell(Text(
-                  r.$1.classificationResult?.detectedObjectName ?? '—')),
-              DataCell(Text(r.$1.finalCategory?.shortLabel ?? '—')),
-              DataCell(Text(r.$1.wasCorrect ? 'Correct' : 'Incorrect',
-                  style: TextStyle(
+            DataRow(
+              cells: [
+                DataCell(Text(r.$2?.firstName ?? '—')),
+                DataCell(Text(r.$2?.className ?? '—')),
+                DataCell(
+                  Text(r.$1.classificationResult?.detectedObjectName ?? '—'),
+                ),
+                DataCell(Text(r.$1.finalCategory?.shortLabel ?? '—')),
+                DataCell(
+                  Text(
+                    r.$1.wasCorrect ? 'Correct' : 'Incorrect',
+                    style: TextStyle(
                       color: r.$1.wasCorrect
                           ? AppColors.success
                           : AppColors.error,
-                      fontWeight: FontWeight.w600))),
-              DataCell(Text('${r.$1.pointsAwarded}')),
-            ]),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                DataCell(Text('${r.$1.pointsAwarded}')),
+              ],
+            ),
         ],
       ),
     );
@@ -770,8 +843,9 @@ class _ReportPreview extends ConsumerWidget {
 }
 
 final _reportSessionsProvider = FutureProvider.autoDispose((ref) async {
-  final sessions =
-      await ref.watch(sessionRepositoryProvider).getRecentSessions(limit: 60);
+  final sessions = await ref
+      .watch(sessionRepositoryProvider)
+      .getRecentSessions(limit: 60);
   final students = await ref.watch(studentRepositoryProvider).getAllStudents();
   final byId = {for (final s in students) s.id: s};
   return [for (final s in sessions) (s, byId[s.studentId])];
@@ -792,10 +866,14 @@ class _TeacherAnnouncementsScreenState
     extends ConsumerState<TeacherAnnouncementsScreen> {
   final _controller = TextEditingController();
   final List<(String, DateTime)> _posts = [
-    ('Taurus House is smashing the plastic recycling goal — keep it up! 🌱',
-        DateTime(2026, 7, 20, 9)),
-    ('Reminder: bring clean recyclables. Rinse those yoghurt pots!',
-        DateTime(2026, 7, 18, 14)),
+    (
+      'Taurus House is smashing the plastic recycling goal — keep it up! 🌱',
+      DateTime(2026, 7, 20, 9),
+    ),
+    (
+      'Reminder: bring clean recyclables. Rinse those yoghurt pots!',
+      DateTime(2026, 7, 18, 14),
+    ),
   ];
 
   @override
@@ -818,15 +896,15 @@ class _TeacherAnnouncementsScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SectionHeader(
-                      title: 'Post an announcement',
-                      icon: Icons.campaign_outlined),
+                    title: 'Post an announcement',
+                    icon: Icons.campaign_outlined,
+                  ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _controller,
                     maxLines: 3,
                     decoration: const InputDecoration(
-                      hintText:
-                          'Share an eco-tip or celebrate a class win…',
+                      hintText: 'Share an eco-tip or celebrate a class win…',
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -836,15 +914,18 @@ class _TeacherAnnouncementsScreenState
                       onPressed: () {
                         if (_controller.text.trim().isEmpty) return;
                         setState(() {
-                          _posts.insert(
-                              0, (_controller.text.trim(), DateTime(2026, 7, 21)));
+                          _posts.insert(0, (
+                            _controller.text.trim(),
+                            DateTime(2026, 7, 21),
+                          ));
                           _controller.clear();
                         });
                       },
                       icon: const Icon(Icons.send),
                       label: const Text('Post'),
                       style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.info),
+                        backgroundColor: AppColors.info,
+                      ),
                     ),
                   ),
                 ],
@@ -868,9 +949,12 @@ class _TeacherAnnouncementsScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(_posts[i].$1,
-                                style: const TextStyle(
-                                    fontWeight: FontWeight.w600)),
+                            Text(
+                              _posts[i].$1,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             Text(
                               '${_posts[i].$2.day}/${_posts[i].$2.month}/${_posts[i].$2.year}',

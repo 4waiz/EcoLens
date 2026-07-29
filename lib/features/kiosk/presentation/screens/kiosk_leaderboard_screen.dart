@@ -36,15 +36,15 @@ class KioskLeaderboardScreen extends ConsumerWidget {
               Text(
                 'House Leaderboard',
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.primaryDark,
-                    ),
+                  color: AppColors.primaryDark,
+                ),
               ),
               const Spacer(),
               Text(
                 'Compete · Contribute · Lead the change 🌱',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppColors.inkMuted,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.inkMuted),
               ),
             ],
           ),
@@ -55,11 +55,21 @@ class KioskLeaderboardScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 if (entries.length > 1)
-                  Expanded(child: _PodiumColumn(entry: entries[1], height: 180)),
+                  Expanded(
+                    child: _PodiumColumn(entry: entries[1], height: 180),
+                  ),
                 if (entries.isNotEmpty)
-                  Expanded(child: _PodiumColumn(entry: entries[0], height: 230, crown: true)),
+                  Expanded(
+                    child: _PodiumColumn(
+                      entry: entries[0],
+                      height: 230,
+                      crown: true,
+                    ),
+                  ),
                 if (entries.length > 2)
-                  Expanded(child: _PodiumColumn(entry: entries[2], height: 150)),
+                  Expanded(
+                    child: _PodiumColumn(entry: entries[2], height: 150),
+                  ),
               ],
             ),
           ),
@@ -105,7 +115,9 @@ class _PodiumColumn extends StatelessWidget {
           if (crown)
             const Icon(Icons.emoji_events, color: AppColors.coinGold, size: 30),
           HouseBadge(
-            emblem: entry.subtitle.isNotEmpty ? _emblemFor(entry.entityName) : 'shield',
+            emblem: entry.subtitle.isNotEmpty
+                ? _emblemFor(entry.entityName)
+                : 'shield',
             colourHex: entry.houseColour,
             size: crown ? 64 : 52,
             selected: entry.isCurrentEntity,
@@ -135,7 +147,9 @@ class _PodiumColumn extends StatelessWidget {
                 end: Alignment.bottomCenter,
                 colors: [colour, colour.withValues(alpha: 0.7)],
               ),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               border: entry.isCurrentEntity
                   ? Border.all(color: AppColors.ink, width: 3)
                   : null,
@@ -202,7 +216,11 @@ class _LeaderboardRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 14),
-          HouseBadge(emblem: entry.entityName.toLowerCase(), colourHex: entry.houseColour, size: 34),
+          HouseBadge(
+            emblem: entry.entityName.toLowerCase(),
+            colourHex: entry.houseColour,
+            size: 34,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

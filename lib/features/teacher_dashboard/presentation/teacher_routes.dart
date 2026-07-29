@@ -12,7 +12,8 @@ import 'teacher_students_screen.dart';
 List<RouteBase> buildTeacherRoutes({
   required String? Function(dynamic, dynamic) guard,
 }) {
-  GoRouterRedirect wrap() => (context, state) => guard(context, state);
+  GoRouterRedirect wrap() =>
+      (context, state) => guard(context, state);
 
   return [
     GoRoute(

@@ -45,7 +45,9 @@ class MockAuthService implements AuthService {
     if (creds.identifier.trim().toLowerCase() == MockSeedData.teacherEmail &&
         creds.password == MockSeedData.demoPassword) {
       final account = MockSeedData.teacher();
-      return Result.ok(_makeSession(UserRole.teacher, account.id, account.name));
+      return Result.ok(
+        _makeSession(UserRole.teacher, account.id, account.name),
+      );
     }
     return const Result.err(AuthFailure());
   }

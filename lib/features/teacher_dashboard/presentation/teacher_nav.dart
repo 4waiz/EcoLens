@@ -9,15 +9,51 @@ import '../../../shared/layouts/dashboard_shell.dart';
 
 /// The teacher dashboard navigation items (shared across all teacher pages).
 const teacherNavItems = <DashboardNavItem>[
-  DashboardNavItem(label: 'Overview', icon: Icons.dashboard_outlined, route: AppRoutes.teacherOverview),
-  DashboardNavItem(label: 'Students', icon: Icons.groups_outlined, route: AppRoutes.teacherStudents),
-  DashboardNavItem(label: 'Classes', icon: Icons.class_outlined, route: AppRoutes.teacherClasses),
-  DashboardNavItem(label: 'Houses', icon: Icons.shield_outlined, route: AppRoutes.teacherHouses),
-  DashboardNavItem(label: 'Leaderboards', icon: Icons.leaderboard_outlined, route: AppRoutes.teacherLeaderboards),
-  DashboardNavItem(label: 'Accuracy', icon: Icons.verified_outlined, route: AppRoutes.teacherAccuracy),
-  DashboardNavItem(label: 'Rewards', icon: Icons.card_giftcard_outlined, route: AppRoutes.teacherRewards),
-  DashboardNavItem(label: 'Reports', icon: Icons.description_outlined, route: AppRoutes.teacherReports),
-  DashboardNavItem(label: 'Announcements', icon: Icons.campaign_outlined, route: AppRoutes.teacherAnnouncements),
+  DashboardNavItem(
+    label: 'Overview',
+    icon: Icons.dashboard_outlined,
+    route: AppRoutes.teacherOverview,
+  ),
+  DashboardNavItem(
+    label: 'Students',
+    icon: Icons.groups_outlined,
+    route: AppRoutes.teacherStudents,
+  ),
+  DashboardNavItem(
+    label: 'Classes',
+    icon: Icons.class_outlined,
+    route: AppRoutes.teacherClasses,
+  ),
+  DashboardNavItem(
+    label: 'Houses',
+    icon: Icons.shield_outlined,
+    route: AppRoutes.teacherHouses,
+  ),
+  DashboardNavItem(
+    label: 'Leaderboards',
+    icon: Icons.leaderboard_outlined,
+    route: AppRoutes.teacherLeaderboards,
+  ),
+  DashboardNavItem(
+    label: 'Accuracy',
+    icon: Icons.verified_outlined,
+    route: AppRoutes.teacherAccuracy,
+  ),
+  DashboardNavItem(
+    label: 'Rewards',
+    icon: Icons.card_giftcard_outlined,
+    route: AppRoutes.teacherRewards,
+  ),
+  DashboardNavItem(
+    label: 'Reports',
+    icon: Icons.description_outlined,
+    route: AppRoutes.teacherReports,
+  ),
+  DashboardNavItem(
+    label: 'Announcements',
+    icon: Icons.campaign_outlined,
+    route: AppRoutes.teacherAnnouncements,
+  ),
 ];
 
 /// Wraps a teacher page in the shared dashboard shell (nav rail + top bar).

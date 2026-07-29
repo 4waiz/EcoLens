@@ -152,20 +152,25 @@ class _StudentRow extends StatelessWidget {
         child: Text(
           student.firstName.characters.first,
           style: const TextStyle(
-              color: AppColors.xpPurple, fontWeight: FontWeight.w700),
+            color: AppColors.xpPurple,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
-      title: Text(student.fullName,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        student.fullName,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: Text('Grade ${student.grade} · Class ${student.className}'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (house != null) ...[
             HouseChip(
-                name: house!.name,
-                colourHex: house!.colour,
-                emblem: house!.emblem),
+              name: house!.name,
+              colourHex: house!.colour,
+              emblem: house!.emblem,
+            ),
             const SizedBox(width: 8),
           ],
           _StatusChip(status: student.accountStatus),
@@ -201,7 +206,10 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         status.label,
         style: TextStyle(
-            color: colour, fontWeight: FontWeight.w700, fontSize: 12),
+          color: colour,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
       ),
     );
   }
@@ -294,7 +302,9 @@ class _AddStudentDialogState extends ConsumerState<_AddStudentDialog> {
                 items: [
                   for (final c in widget.classes)
                     DropdownMenuItem(
-                        value: c, child: Text('${c.name} (Grade ${c.grade})')),
+                      value: c,
+                      child: Text('${c.name} (Grade ${c.grade})'),
+                    ),
                 ],
                 onChanged: (v) => setState(() => _class = v),
               ),
@@ -325,7 +335,9 @@ class _AddStudentDialogState extends ConsumerState<_AddStudentDialog> {
                   width: 18,
                   height: 18,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white),
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
                 )
               : const Text('Add'),
         ),
@@ -342,8 +354,9 @@ final _cardsProvider = FutureProvider.autoDispose((ref) async {
   final students = await ref.watch(studentRepositoryProvider).getAllStudents();
   final byId = {for (final s in students) s.id: s};
   final rows = [for (final c in cards) (card: c, student: byId[c.studentId])];
-  rows.sort((a, b) =>
-      (a.student?.fullName ?? '').compareTo(b.student?.fullName ?? ''));
+  rows.sort(
+    (a, b) => (a.student?.fullName ?? '').compareTo(b.student?.fullName ?? ''),
+  );
   return rows;
 });
 
@@ -365,7 +378,9 @@ class AdminCardsScreen extends ConsumerWidget {
         data: (rows) => ContentBounds(
           child: rows.isEmpty
               ? const EmptyView(
-                  title: 'No cards issued', icon: Icons.badge_outlined)
+                  title: 'No cards issued',
+                  icon: Icons.badge_outlined,
+                )
               : EcoCard(
                   padding: EdgeInsets.zero,
                   child: ListView.separated(
@@ -389,7 +404,10 @@ class AdminCardsScreen extends ConsumerWidget {
   }
 
   Future<void> _toggle(
-      BuildContext context, WidgetRef ref, StudentCard card) async {
+    BuildContext context,
+    WidgetRef ref,
+    StudentCard card,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final repo = ref.read(cardRepositoryProvider);
     if (card.isActive) {
@@ -400,13 +418,19 @@ class AdminCardsScreen extends ConsumerWidget {
     ref.invalidate(_cardsProvider);
     messenger.showSnackBar(
       SnackBar(
-        content: Text(card.isActive ? 'Card deactivated.' : 'Card reactivated.'),
+        content: Text(
+          card.isActive ? 'Card deactivated.' : 'Card reactivated.',
+        ),
       ),
     );
   }
 
-  Future<void> _replace(BuildContext context, WidgetRef ref, StudentCard card,
-      Student? student) async {
+  Future<void> _replace(
+    BuildContext context,
+    WidgetRef ref,
+    StudentCard card,
+    Student? student,
+  ) async {
     final newUid = await showDialog<String>(
       context: context,
       builder: (_) => _ReplaceCardDialog(student: student),
@@ -416,21 +440,28 @@ class AdminCardsScreen extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     await ref.read(cardRepositoryProvider).replaceCard(card.studentId, newUid);
     final session = ref.read(authServiceProvider).getCurrentSession();
-    await ref.read(auditRepositoryProvider).record(
+    await ref
+        .read(auditRepositoryProvider)
+        .record(
           AuditLogEntry(
             id: 'audit-${DateTime.now().millisecondsSinceEpoch}',
             actorId: session?.accountId ?? 'admin-1',
             actorName: session?.displayName ?? 'Administrator',
             action: 'Replaced Student ID card',
             target: card.studentId,
-            detail: 'Lost card reissued for ${student?.fullName ?? card.studentId}',
+            detail:
+                'Lost card reissued for ${student?.fullName ?? card.studentId}',
             timestamp: DateTime.now(),
           ),
         );
     ref.invalidate(_cardsProvider);
     messenger.showSnackBar(
-      SnackBar(content: Text('Replacement card issued for '
-          '${student?.fullName ?? 'student'}.')),
+      SnackBar(
+        content: Text(
+          'Replacement card issued for '
+          '${student?.fullName ?? 'student'}.',
+        ),
+      ),
     );
   }
 }
@@ -455,11 +486,15 @@ class _CardRow extends StatelessWidget {
         backgroundColor: AppColors.primarySurface,
         child: const Icon(Icons.badge_outlined, color: AppColors.primary),
       ),
-      title: Text(student?.fullName ?? 'Unknown student',
-          style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: Text('UID ${card.maskedUid} · '
-          '${card.isActive ? 'Active' : 'Inactive'}'
-          '${card.isExpired ? ' · Expired' : ''}'),
+      title: Text(
+        student?.fullName ?? 'Unknown student',
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(
+        'UID ${card.maskedUid} · '
+        '${card.isActive ? 'Active' : 'Inactive'}'
+        '${card.isExpired ? ' · Expired' : ''}',
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -491,7 +526,8 @@ class _ReplaceCardDialog extends StatefulWidget {
 class _ReplaceCardDialogState extends State<_ReplaceCardDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _uid = TextEditingController(
-    text: '04${DateTime.now().millisecondsSinceEpoch.toRadixString(16).toUpperCase()}',
+    text:
+        '04${DateTime.now().millisecondsSinceEpoch.toRadixString(16).toUpperCase()}',
   );
 
   @override
@@ -512,9 +548,11 @@ class _ReplaceCardDialogState extends State<_ReplaceCardDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Issuing a new card for '
-                  '${widget.student?.fullName ?? 'this student'}. '
-                  'The old card is deactivated automatically.'),
+              Text(
+                'Issuing a new card for '
+                '${widget.student?.fullName ?? 'this student'}. '
+                'The old card is deactivated automatically.',
+              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _uid,
@@ -522,8 +560,9 @@ class _ReplaceCardDialogState extends State<_ReplaceCardDialog> {
                   labelText: 'New card UID',
                   prefixIcon: Icon(Icons.nfc),
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().length < 4) ? 'Enter a valid UID' : null,
+                validator: (v) => (v == null || v.trim().length < 4)
+                    ? 'Enter a valid UID'
+                    : null,
               ),
             ],
           ),
@@ -598,23 +637,34 @@ class AdminClassesScreen extends ConsumerWidget {
                         children: [
                           CircleAvatar(
                             backgroundColor: AppColors.xpPurpleSurface,
-                            child: Text('${r.schoolClass.grade}',
-                                style: const TextStyle(
-                                    color: AppColors.xpPurple,
-                                    fontWeight: FontWeight.w700)),
+                            child: Text(
+                              '${r.schoolClass.grade}',
+                              style: const TextStyle(
+                                color: AppColors.xpPurple,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 12),
-                          Text('Class ${r.schoolClass.name}',
-                              style: Theme.of(context).textTheme.titleLarge),
+                          Text(
+                            'Class ${r.schoolClass.name}',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                         ],
                       ),
                       const Spacer(),
-                      Text('Grade ${r.schoolClass.grade}',
-                          style: const TextStyle(color: AppColors.inkMuted)),
+                      Text(
+                        'Grade ${r.schoolClass.grade}',
+                        style: const TextStyle(color: AppColors.inkMuted),
+                      ),
                       const SizedBox(height: 4),
-                      Text('${r.members} students',
-                          style: const TextStyle(
-                              fontSize: 22, fontWeight: FontWeight.w800)),
+                      Text(
+                        '${r.members} students',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -628,9 +678,8 @@ class AdminClassesScreen extends ConsumerWidget {
   Future<void> _openAddDialog(BuildContext context, WidgetRef ref) async {
     await showDialog<void>(
       context: context,
-      builder: (_) => _AddClassDialog(
-        onSaved: () => ref.invalidate(_adminClassesProvider),
-      ),
+      builder: (_) =>
+          _AddClassDialog(onSaved: () => ref.invalidate(_adminClassesProvider)),
     );
   }
 }
@@ -659,7 +708,9 @@ class _AddClassDialogState extends ConsumerState<_AddClassDialog> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final id = 'class-${DateTime.now().millisecondsSinceEpoch}';
-    await ref.read(classRepositoryProvider).upsertClass(
+    await ref
+        .read(classRepositoryProvider)
+        .upsertClass(
           SchoolClass(id: id, name: _name.text.trim(), grade: _grade),
         );
     widget.onSaved();
@@ -679,8 +730,9 @@ class _AddClassDialogState extends ConsumerState<_AddClassDialog> {
             children: [
               TextFormField(
                 controller: _name,
-                decoration:
-                    const InputDecoration(labelText: 'Class name (e.g. 6A)'),
+                decoration: const InputDecoration(
+                  labelText: 'Class name (e.g. 6A)',
+                ),
                 validator: (v) =>
                     (v == null || v.trim().isEmpty) ? 'Required' : null,
               ),
@@ -758,7 +810,11 @@ class AdminHousesScreen extends ConsumerWidget {
     );
   }
 
-  Future<void> _editGoal(BuildContext context, WidgetRef ref, House house) async {
+  Future<void> _editGoal(
+    BuildContext context,
+    WidgetRef ref,
+    House house,
+  ) async {
     final newGoal = await showDialog<String>(
       context: context,
       builder: (_) => _EditGoalDialog(house: house),
@@ -797,8 +853,10 @@ class _AdminHouseCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text('${house.name} House',
-                          style: Theme.of(context).textTheme.titleLarge),
+                      child: Text(
+                        '${house.name} House',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
                     ),
                     IconButton(
                       tooltip: 'Edit goal',
@@ -807,11 +865,15 @@ class _AdminHouseCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                Text('${house.totalPoints} points · rank #${house.leaderboardPosition}',
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  '${house.totalPoints} points · rank #${house.leaderboardPosition}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
                 const SizedBox(height: 8),
-                Text(house.sustainabilityGoal,
-                    style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  house.sustainabilityGoal,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
                 const SizedBox(height: 8),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(999),
@@ -823,8 +885,10 @@ class _AdminHouseCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text('${(house.goalProgress * 100).round()}% to goal',
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  '${(house.goalProgress * 100).round()}% to goal',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -843,8 +907,9 @@ class _EditGoalDialog extends StatefulWidget {
 }
 
 class _EditGoalDialogState extends State<_EditGoalDialog> {
-  late final TextEditingController _goal =
-      TextEditingController(text: widget.house.sustainabilityGoal);
+  late final TextEditingController _goal = TextEditingController(
+    text: widget.house.sustainabilityGoal,
+  );
 
   @override
   void dispose() {
@@ -908,7 +973,8 @@ class AdminKiosksScreen extends ConsumerWidget {
           child: devices.isEmpty
               ? const EmptyView(
                   title: 'No kiosks registered',
-                  icon: Icons.devices_other_outlined)
+                  icon: Icons.devices_other_outlined,
+                )
               : ListView.separated(
                   itemCount: devices.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 16),
@@ -924,7 +990,10 @@ class AdminKiosksScreen extends ConsumerWidget {
   }
 
   Future<void> _toggleMaintenance(
-      BuildContext context, WidgetRef ref, KioskDevice device) async {
+    BuildContext context,
+    WidgetRef ref,
+    KioskDevice device,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     final enable = !device.maintenanceMode;
     await ref
@@ -933,9 +1002,11 @@ class AdminKiosksScreen extends ConsumerWidget {
     ref.invalidate(_adminDevicesProvider);
     messenger.showSnackBar(
       SnackBar(
-        content: Text(enable
-            ? '${device.name} entered maintenance mode.'
-            : '${device.name} exited maintenance mode.'),
+        content: Text(
+          enable
+              ? '${device.name} entered maintenance mode.'
+              : '${device.name} exited maintenance mode.',
+        ),
       ),
     );
   }
@@ -969,23 +1040,30 @@ class _KioskCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(device.name,
-                        style: Theme.of(context).textTheme.titleLarge),
-                    Text(device.schoolLocation,
-                        style: Theme.of(context).textTheme.bodySmall),
+                    Text(
+                      device.name,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Text(
+                      device.schoolLocation,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: colour.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(device.health.label,
-                    style: TextStyle(
-                        color: colour, fontWeight: FontWeight.w700)),
+                child: Text(
+                  device.health.label,
+                  style: TextStyle(color: colour, fontWeight: FontWeight.w700),
+                ),
               ),
             ],
           ),
@@ -1005,12 +1083,13 @@ class _KioskCard extends StatelessWidget {
             runSpacing: 10,
             children: [
               _PeripheralPill(
-                  label: 'Controller', status: device.controllerStatus),
+                label: 'Controller',
+                status: device.controllerStatus,
+              ),
               _PeripheralPill(label: 'Camera', status: device.cameraStatus),
               _PeripheralPill(label: 'NFC', status: device.nfcStatus),
               _PeripheralPill(label: 'Sensor', status: device.sensorStatus),
-              _PeripheralPill(
-                  label: 'Internet', status: device.internetStatus),
+              _PeripheralPill(label: 'Internet', status: device.internetStatus),
             ],
           ),
           const SizedBox(height: 16),
@@ -1018,12 +1097,16 @@ class _KioskCard extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: OutlinedButton.icon(
               onPressed: onToggleMaintenance,
-              icon: Icon(device.maintenanceMode
-                  ? Icons.play_circle_outline
-                  : Icons.build_outlined),
-              label: Text(device.maintenanceMode
-                  ? 'Exit maintenance mode'
-                  : 'Enter maintenance mode'),
+              icon: Icon(
+                device.maintenanceMode
+                    ? Icons.play_circle_outline
+                    : Icons.build_outlined,
+              ),
+              label: Text(
+                device.maintenanceMode
+                    ? 'Exit maintenance mode'
+                    : 'Enter maintenance mode',
+              ),
             ),
           ),
         ],
@@ -1039,12 +1122,12 @@ class _KioskCard extends StatelessWidget {
   }
 
   Widget _kv(BuildContext context, String k, String v) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(k, style: Theme.of(context).textTheme.bodySmall),
-          Text(v, style: const TextStyle(fontWeight: FontWeight.w700)),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(k, style: Theme.of(context).textTheme.bodySmall),
+      Text(v, style: const TextStyle(fontWeight: FontWeight.w700)),
+    ],
+  );
 }
 
 class _PeripheralPill extends StatelessWidget {
@@ -1076,9 +1159,14 @@ class _PeripheralPill extends StatelessWidget {
             decoration: BoxDecoration(color: colour, shape: BoxShape.circle),
           ),
           const SizedBox(width: 6),
-          Text('$label · ${status.label}',
-              style: TextStyle(
-                  color: colour, fontWeight: FontWeight.w600, fontSize: 12)),
+          Text(
+            '$label · ${status.label}',
+            style: TextStyle(
+              color: colour,
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
+          ),
         ],
       ),
     );
@@ -1110,7 +1198,9 @@ class AdminRewardsScreen extends ConsumerWidget {
         data: (items) => ContentBounds(
           child: items.isEmpty
               ? const EmptyView(
-                  title: 'No rewards yet', icon: Icons.card_giftcard_outlined)
+                  title: 'No rewards yet',
+                  icon: Icons.card_giftcard_outlined,
+                )
               : EcoCard(
                   padding: EdgeInsets.zero,
                   child: ListView.separated(
@@ -1129,7 +1219,10 @@ class AdminRewardsScreen extends ConsumerWidget {
   }
 
   Future<void> _toggle(
-      BuildContext context, WidgetRef ref, RewardItem item) async {
+    BuildContext context,
+    WidgetRef ref,
+    RewardItem item,
+  ) async {
     await ref
         .read(rewardRepositoryProvider)
         .upsertRewardItem(item.copyWith(isActive: !item.isActive));
@@ -1137,7 +1230,10 @@ class AdminRewardsScreen extends ConsumerWidget {
   }
 
   Future<void> _editCost(
-      BuildContext context, WidgetRef ref, RewardItem item) async {
+    BuildContext context,
+    WidgetRef ref,
+    RewardItem item,
+  ) async {
     final newCost = await showDialog<int>(
       context: context,
       builder: (_) => _EditCostDialog(item: item),
@@ -1178,23 +1274,30 @@ class _RewardRow extends StatelessWidget {
         backgroundColor: AppColors.coinGoldSurface,
         child: const Icon(Icons.card_giftcard, color: AppColors.coinGoldDark),
       ),
-      title: Text(item.name,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        item.name,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: Row(
         children: [
           Text(item.category.label),
           const Text('  ·  '),
-          Text(item.stockStatus.label,
-              style: TextStyle(color: stockColour, fontWeight: FontWeight.w600)),
+          Text(
+            item.stockStatus.label,
+            style: TextStyle(color: stockColour, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('${item.pointCost} pts',
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.coinGoldDark)),
+          Text(
+            '${item.pointCost} pts',
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              color: AppColors.coinGoldDark,
+            ),
+          ),
           const SizedBox(width: 8),
           IconButton(
             tooltip: 'Edit cost',
@@ -1222,8 +1325,9 @@ class _EditCostDialog extends StatefulWidget {
 
 class _EditCostDialogState extends State<_EditCostDialog> {
   final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _cost =
-      TextEditingController(text: '${widget.item.pointCost}');
+  late final TextEditingController _cost = TextEditingController(
+    text: '${widget.item.pointCost}',
+  );
 
   @override
   void dispose() {
@@ -1335,13 +1439,15 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
                     label: 'Points per correct',
                     value: c.pointsPerCorrect,
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(pointsPerCorrect: v)),
+                      () => _config = c.copyWith(pointsPerCorrect: v),
+                    ),
                   ),
                   _numberField(
                     label: 'Points per incorrect',
                     value: c.pointsPerIncorrect,
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(pointsPerIncorrect: v)),
+                      () => _config = c.copyWith(pointsPerIncorrect: v),
+                    ),
                   ),
                   _numberField(
                     label: 'Daily points cap',
@@ -1373,7 +1479,8 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
                     label: 'Bonus streak threshold',
                     value: c.bonusStreakThreshold,
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(bonusStreakThreshold: v)),
+                      () => _config = c.copyWith(bonusStreakThreshold: v),
+                    ),
                   ),
                   _numberField(
                     label: 'Bonus points',
@@ -1385,7 +1492,8 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
                     label: 'Streak grace days',
                     value: c.streakGraceDays,
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(streakGraceDays: v)),
+                      () => _config = c.copyWith(streakGraceDays: v),
+                    ),
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
@@ -1393,7 +1501,8 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
                     title: const Text('Weekends count as active'),
                     value: c.weekendsCountAsActive,
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(weekendsCountAsActive: v)),
+                      () => _config = c.copyWith(weekendsCountAsActive: v),
+                    ),
                   ),
                   SwitchListTile(
                     contentPadding: EdgeInsets.zero,
@@ -1401,7 +1510,8 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
                     title: const Text('Holidays count as active'),
                     value: c.holidaysCountAsActive,
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(holidaysCountAsActive: v)),
+                      () => _config = c.copyWith(holidaysCountAsActive: v),
+                    ),
                   ),
                 ],
               ),
@@ -1422,25 +1532,30 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
                     activeThumbColor: AppColors.xpPurple,
                     title: const Text('Enable monetary conversion'),
                     value: c.monetaryConversionEnabled,
-                    onChanged: (v) => setState(() =>
-                        _config = c.copyWith(monetaryConversionEnabled: v)),
+                    onChanged: (v) => setState(
+                      () => _config = c.copyWith(monetaryConversionEnabled: v),
+                    ),
                   ),
                   _numberField(
                     label: 'Points per currency unit',
                     value: c.pointsPerCurrencyUnit,
                     enabled: c.monetaryConversionEnabled,
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(pointsPerCurrencyUnit: v)),
+                      () => _config = c.copyWith(pointsPerCurrencyUnit: v),
+                    ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     child: TextFormField(
                       enabled: c.monetaryConversionEnabled,
                       initialValue: c.currencyCode,
-                      decoration:
-                          const InputDecoration(labelText: 'Currency code'),
-                      onChanged: (v) => setState(() =>
-                          _config = c.copyWith(currencyCode: v.toUpperCase())),
+                      decoration: const InputDecoration(
+                        labelText: 'Currency code',
+                      ),
+                      onChanged: (v) => setState(
+                        () =>
+                            _config = c.copyWith(currencyCode: v.toUpperCase()),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -1452,17 +1567,20 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calculate_outlined,
-                            color: AppColors.xpPurple),
+                        const Icon(
+                          Icons.calculate_outlined,
+                          color: AppColors.xpPurple,
+                        ),
                         const SizedBox(width: 10),
                         Text(
                           c.monetaryConversionEnabled
                               ? '${c.pointsPerCurrencyUnit} points = '
-                                  '${c.formatCurrency(c.pointsPerCurrencyUnit)}'
+                                    '${c.formatCurrency(c.pointsPerCurrencyUnit)}'
                               : 'Conversion disabled — rewards are non-monetary.',
                           style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.xpPurpleDark),
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.xpPurpleDark,
+                          ),
                         ),
                       ],
                     ),
@@ -1480,7 +1598,9 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.xpPurple,
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 24, vertical: 16),
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1525,7 +1645,9 @@ class _GamificationFormState extends ConsumerState<_GamificationForm> {
     final messenger = ScaffoldMessenger.of(context);
     await ref.read(configRepositoryProvider).saveConfig(_config);
     final session = ref.read(authServiceProvider).getCurrentSession();
-    await ref.read(auditRepositoryProvider).record(
+    await ref
+        .read(auditRepositoryProvider)
+        .record(
           AuditLogEntry(
             id: 'audit-${DateTime.now().millisecondsSinceEpoch}',
             actorId: session?.accountId ?? 'admin-1',
@@ -1609,15 +1731,20 @@ class _AiSettingsFormState extends ConsumerState<_AiSettingsForm> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Text('${(c.aiConfidenceThreshold * 100).round()}%',
-                          style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.xpPurple)),
+                      Text(
+                        '${(c.aiConfidenceThreshold * 100).round()}%',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.xpPurple,
+                        ),
+                      ),
                       const SizedBox(width: 12),
                       const Expanded(
-                        child: Text('Minimum confidence to trust the AI’s bin '
-                            'choice.'),
+                        child: Text(
+                          'Minimum confidence to trust the AI’s bin '
+                          'choice.',
+                        ),
                       ),
                     ],
                   ),
@@ -1629,7 +1756,8 @@ class _AiSettingsFormState extends ConsumerState<_AiSettingsForm> {
                     activeColor: AppColors.xpPurple,
                     label: '${(c.aiConfidenceThreshold * 100).round()}%',
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(aiConfidenceThreshold: v)),
+                      () => _config = c.copyWith(aiConfidenceThreshold: v),
+                    ),
                   ),
                 ],
               ),
@@ -1649,13 +1777,15 @@ class _AiSettingsFormState extends ConsumerState<_AiSettingsForm> {
                     label: 'Image retention (seconds, 0 = clear immediately)',
                     value: c.imageRetentionSeconds,
                     onChanged: (v) => setState(
-                        () => _config = c.copyWith(imageRetentionSeconds: v)),
+                      () => _config = c.copyWith(imageRetentionSeconds: v),
+                    ),
                   ),
                   _numberField(
                     label: 'Inactivity timeout (seconds)',
                     value: c.inactivityTimeoutSeconds,
-                    onChanged: (v) => setState(() =>
-                        _config = c.copyWith(inactivityTimeoutSeconds: v)),
+                    onChanged: (v) => setState(
+                      () => _config = c.copyWith(inactivityTimeoutSeconds: v),
+                    ),
                   ),
                 ],
               ),
@@ -1667,8 +1797,10 @@ class _AiSettingsFormState extends ConsumerState<_AiSettingsForm> {
               label: const Text('Save AI settings'),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.xpPurple,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
               ),
             ),
             const SizedBox(height: 24),
@@ -1702,7 +1834,9 @@ class _AiSettingsFormState extends ConsumerState<_AiSettingsForm> {
     final messenger = ScaffoldMessenger.of(context);
     await ref.read(configRepositoryProvider).saveConfig(_config);
     final session = ref.read(authServiceProvider).getCurrentSession();
-    await ref.read(auditRepositoryProvider).record(
+    await ref
+        .read(auditRepositoryProvider)
+        .record(
           AuditLogEntry(
             id: 'audit-${DateTime.now().millisecondsSinceEpoch}',
             actorId: session?.accountId ?? 'admin-1',
@@ -1717,9 +1851,7 @@ class _AiSettingsFormState extends ConsumerState<_AiSettingsForm> {
     ref.invalidate(_configProvider);
     if (!mounted) return;
     setState(() => _saving = false);
-    messenger.showSnackBar(
-      const SnackBar(content: Text('AI settings saved.')),
-    );
+    messenger.showSnackBar(const SnackBar(content: Text('AI settings saved.')));
   }
 }
 
@@ -1746,15 +1878,15 @@ class _AdminWasteCategoriesScreenState
   };
 
   static String _defaultDescription(WasteCategory c) => switch (c) {
-        WasteCategory.plastic =>
-          'Clean plastics and recyclables. Maps to the blue bin slot.',
-        WasteCategory.paper =>
-          'Dry paper and flattened cardboard. Maps to the indigo bin slot.',
-        WasteCategory.organic =>
-          'Food scraps and compostables. Maps to the green bin slot.',
-        WasteCategory.general =>
-          'Everything else, including contaminated items. Maps to the grey slot.',
-      };
+    WasteCategory.plastic =>
+      'Clean plastics and recyclables. Maps to the blue bin slot.',
+    WasteCategory.paper =>
+      'Dry paper and flattened cardboard. Maps to the indigo bin slot.',
+    WasteCategory.organic =>
+      'Food scraps and compostables. Maps to the green bin slot.',
+    WasteCategory.general =>
+      'Everything else, including contaminated items. Maps to the grey slot.',
+  };
 
   @override
   void dispose() {
@@ -1818,36 +1950,45 @@ class _AdminWasteCategoriesScreenState
                             child: Icon(c.icon, color: c.colour),
                           ),
                           const SizedBox(width: 12),
-                          Text(c.label,
-                              style: Theme.of(context).textTheme.titleLarge),
+                          Text(
+                            c.label,
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                           const Spacer(),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: c.colour.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(999),
                             ),
-                            child: Text('LED · ${c.shortLabel}',
-                                style: TextStyle(
-                                    color: c.colour,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 12)),
+                            child: Text(
+                              'LED · ${c.shortLabel}',
+                              style: TextStyle(
+                                color: c.colour,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: _labels[c],
-                        decoration:
-                            const InputDecoration(labelText: 'Display label'),
+                        decoration: const InputDecoration(
+                          labelText: 'Display label',
+                        ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
                         controller: _descriptions[c],
                         maxLines: 2,
-                        decoration:
-                            const InputDecoration(labelText: 'Description'),
+                        decoration: const InputDecoration(
+                          labelText: 'Description',
+                        ),
                       ),
                     ],
                   ),
@@ -1858,8 +1999,10 @@ class _AdminWasteCategoriesScreenState
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Category labels updated for this session. '
-                          '(Bin-slot mapping is fixed by hardware.)'),
+                      content: Text(
+                        'Category labels updated for this session. '
+                        '(Bin-slot mapping is fixed by hardware.)',
+                      ),
                     ),
                   );
                 },
@@ -1867,8 +2010,10 @@ class _AdminWasteCategoriesScreenState
                 label: const Text('Apply labels'),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.xpPurple,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -1893,20 +2038,23 @@ class AdminUsersScreen extends ConsumerWidget {
     final canteen = MockSeedData.canteenStaff();
     final users = <_StaffUser>[
       _StaffUser(
-          name: admin.name,
-          identifier: admin.email,
-          role: UserRole.admin,
-          detail: '${admin.permissions.length} permissions'),
+        name: admin.name,
+        identifier: admin.email,
+        role: UserRole.admin,
+        detail: '${admin.permissions.length} permissions',
+      ),
       _StaffUser(
-          name: teacher.name,
-          identifier: teacher.email,
-          role: UserRole.teacher,
-          detail: 'Classes: ${teacher.assignedClasses.join(', ')}'),
+        name: teacher.name,
+        identifier: teacher.email,
+        role: UserRole.teacher,
+        detail: 'Classes: ${teacher.assignedClasses.join(', ')}',
+      ),
       _StaffUser(
-          name: canteen.name,
-          identifier: canteen.employeeNumber,
-          role: UserRole.canteenStaff,
-          detail: 'Terminal ${canteen.terminalId}'),
+        name: canteen.name,
+        identifier: canteen.employeeNumber,
+        role: UserRole.canteenStaff,
+        detail: 'Terminal ${canteen.terminalId}',
+      ),
     ];
     return AdminScaffold(
       title: 'Users',
@@ -1970,11 +2118,15 @@ class _UserRow extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: CircleAvatar(
         backgroundColor: colour.withValues(alpha: 0.15),
-        child: Text(user.name.characters.first,
-            style: TextStyle(color: colour, fontWeight: FontWeight.w700)),
+        child: Text(
+          user.name.characters.first,
+          style: TextStyle(color: colour, fontWeight: FontWeight.w700),
+        ),
       ),
-      title: Text(user.name,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        user.name,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: Text('${user.identifier} · ${user.detail}'),
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -1982,8 +2134,10 @@ class _UserRow extends StatelessWidget {
           color: colour.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(999),
         ),
-        child: Text(user.role.label,
-            style: TextStyle(color: colour, fontWeight: FontWeight.w700)),
+        child: Text(
+          user.role.label,
+          style: TextStyle(color: colour, fontWeight: FontWeight.w700),
+        ),
       ),
     );
   }
@@ -2024,8 +2178,9 @@ class _InviteUserDialogState extends State<_InviteUserDialog> {
                   labelText: 'Work email',
                   prefixIcon: Icon(Icons.email_outlined),
                 ),
-                validator: (v) =>
-                    (v == null || !v.contains('@')) ? 'Enter a valid email' : null,
+                validator: (v) => (v == null || !v.contains('@'))
+                    ? 'Enter a valid email'
+                    : null,
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<UserRole>(
@@ -2033,11 +2188,17 @@ class _InviteUserDialogState extends State<_InviteUserDialog> {
                 decoration: const InputDecoration(labelText: 'Role'),
                 items: const [
                   DropdownMenuItem(
-                      value: UserRole.teacher, child: Text('Teacher')),
+                    value: UserRole.teacher,
+                    child: Text('Teacher'),
+                  ),
                   DropdownMenuItem(
-                      value: UserRole.admin, child: Text('Administrator')),
+                    value: UserRole.admin,
+                    child: Text('Administrator'),
+                  ),
                   DropdownMenuItem(
-                      value: UserRole.canteenStaff, child: Text('Canteen Staff')),
+                    value: UserRole.canteenStaff,
+                    child: Text('Canteen Staff'),
+                  ),
                 ],
                 onChanged: (v) => setState(() => _role = v ?? _role),
               ),
@@ -2058,8 +2219,10 @@ class _InviteUserDialogState extends State<_InviteUserDialog> {
             Navigator.of(context).pop();
             messenger.showSnackBar(
               SnackBar(
-                content: Text('Invitation sent to $email as '
-                    '${_role.label}. (Simulated in the MVP.)'),
+                content: Text(
+                  'Invitation sent to $email as '
+                  '${_role.label}. (Simulated in the MVP.)',
+                ),
               ),
             );
           },
@@ -2104,14 +2267,14 @@ class AdminAuditLogScreen extends ConsumerWidget {
           child: entries.isEmpty
               ? const EmptyView(
                   title: 'No audit events yet',
-                  icon: Icons.receipt_long_outlined)
+                  icon: Icons.receipt_long_outlined,
+                )
               : EcoCard(
                   padding: EdgeInsets.zero,
                   child: ListView.separated(
                     itemCount: entries.length,
                     separatorBuilder: (_, _) => const Divider(height: 1),
-                    itemBuilder: (context, i) =>
-                        _AuditRow(entry: entries[i]),
+                    itemBuilder: (context, i) => _AuditRow(entry: entries[i]),
                   ),
                 ),
         ),
@@ -2132,8 +2295,10 @@ class _AuditRow extends StatelessWidget {
         backgroundColor: AppColors.xpPurpleSurface,
         child: Icon(Icons.history, color: AppColors.xpPurple),
       ),
-      title: Text(entry.action,
-          style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        entry.action,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: Text(
         '${entry.actorName} · ${entry.target}'
         '${entry.detail.isNotEmpty ? ' · ${entry.detail}' : ''}',
@@ -2187,7 +2352,9 @@ class AdminSystemHealthScreen extends ConsumerWidget {
                 loading: () => const EcoCard(
                   child: SizedBox(
                     height: 120,
-                    child: LoadingView(message: 'Connecting to bin controller…'),
+                    child: LoadingView(
+                      message: 'Connecting to bin controller…',
+                    ),
                   ),
                 ),
                 error: (e, _) => const EcoCard(
@@ -2210,14 +2377,16 @@ class _FleetSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final online =
-        devices.where((d) => d.health == HealthStatus.online).length;
-    final degraded =
-        devices.where((d) => d.health == HealthStatus.degraded).length;
-    final offline =
-        devices.where((d) => d.health == HealthStatus.offline).length;
-    final maintenance =
-        devices.where((d) => d.health == HealthStatus.maintenance).length;
+    final online = devices.where((d) => d.health == HealthStatus.online).length;
+    final degraded = devices
+        .where((d) => d.health == HealthStatus.degraded)
+        .length;
+    final offline = devices
+        .where((d) => d.health == HealthStatus.offline)
+        .length;
+    final maintenance = devices
+        .where((d) => d.health == HealthStatus.maintenance)
+        .length;
     final allHealthy = degraded == 0 && offline == 0;
     return EcoCard(
       child: Column(
@@ -2225,21 +2394,26 @@ class _FleetSummary extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(allHealthy ? Icons.check_circle : Icons.warning_amber_rounded,
-                  color: allHealthy ? AppColors.success : AppColors.warning,
-                  size: 32),
+              Icon(
+                allHealthy ? Icons.check_circle : Icons.warning_amber_rounded,
+                color: allHealthy ? AppColors.success : AppColors.warning,
+                size: 32,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                        allHealthy
-                            ? 'All systems operational'
-                            : 'Attention needed',
-                        style: Theme.of(context).textTheme.titleLarge),
-                    Text('${devices.length} kiosks monitored',
-                        style: Theme.of(context).textTheme.bodySmall),
+                      allHealthy
+                          ? 'All systems operational'
+                          : 'Attention needed',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Text(
+                      '${devices.length} kiosks monitored',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
@@ -2272,11 +2446,14 @@ class _FleetSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('$count',
-              style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: colour)),
+          Text(
+            '$count',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: colour,
+            ),
+          ),
           Text(label, style: const TextStyle(color: AppColors.inkMuted)),
         ],
       ),
@@ -2308,10 +2485,11 @@ class _LiveHardware extends StatelessWidget {
               _BoolPill(label: 'Camera', ok: status.cameraAvailable),
               _BoolPill(label: 'Card reader', ok: status.cardReaderAvailable),
               _BoolPill(
-                  label: 'Waste detected',
-                  ok: status.wastePresenceDetected,
-                  okLabel: 'Present',
-                  offLabel: 'Clear'),
+                label: 'Waste detected',
+                ok: status.wastePresenceDetected,
+                okLabel: 'Present',
+                offLabel: 'Clear',
+              ),
             ],
           ),
           const Divider(height: 32),
@@ -2329,8 +2507,10 @@ class _LiveHardware extends StatelessWidget {
             ],
           ),
           const Divider(height: 32),
-          Text('Bin fill levels',
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Bin fill levels',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 12),
           for (final c in WasteCategory.values)
             _FillBar(
@@ -2376,11 +2556,16 @@ class _BoolPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(ok ? Icons.check_circle : Icons.error_outline,
-              size: 18, color: colour),
+          Icon(
+            ok ? Icons.check_circle : Icons.error_outline,
+            size: 18,
+            color: colour,
+          ),
           const SizedBox(width: 8),
-          Text('$label · ${ok ? okLabel : offLabel}',
-              style: TextStyle(color: colour, fontWeight: FontWeight.w700)),
+          Text(
+            '$label · ${ok ? okLabel : offLabel}',
+            style: TextStyle(color: colour, fontWeight: FontWeight.w700),
+          ),
         ],
       ),
     );
@@ -2433,10 +2618,14 @@ class _LedTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(category.shortLabel,
-                    style: const TextStyle(fontWeight: FontWeight.w700)),
-                Text(_ledLabel(colour),
-                    style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  category.shortLabel,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  _ledLabel(colour),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -2446,12 +2635,12 @@ class _LedTile extends StatelessWidget {
   }
 
   static String _ledLabel(FeedbackColour c) => switch (c) {
-        FeedbackColour.off => 'Off',
-        FeedbackColour.green => 'Green',
-        FeedbackColour.red => 'Red',
-        FeedbackColour.amber => 'Amber',
-        FeedbackColour.houseColour => 'House colour',
-      };
+    FeedbackColour.off => 'Off',
+    FeedbackColour.green => 'Green',
+    FeedbackColour.red => 'Red',
+    FeedbackColour.amber => 'Amber',
+    FeedbackColour.houseColour => 'House colour',
+  };
 }
 
 class _FillBar extends StatelessWidget {
@@ -2472,13 +2661,16 @@ class _FillBar extends StatelessWidget {
             children: [
               Icon(category.icon, size: 18, color: category.colour),
               const SizedBox(width: 8),
-              Text(category.label,
-                  style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                category.label,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               const Spacer(),
-              Text('${(level * 100).round()}%'
-                  '${full ? ' · full' : ''}',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w700, color: colour)),
+              Text(
+                '${(level * 100).round()}%'
+                '${full ? ' · full' : ''}',
+                style: TextStyle(fontWeight: FontWeight.w700, color: colour),
+              ),
             ],
           ),
           const SizedBox(height: 6),

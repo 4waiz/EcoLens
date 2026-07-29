@@ -140,12 +140,12 @@ class StatTile extends StatelessWidget {
               const Spacer(),
               if (delta != null && delta!.isNotEmpty)
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
-                    color: (deltaPositive
-                            ? AppColors.success
-                            : AppColors.error)
+                    color: (deltaPositive ? AppColors.success : AppColors.error)
                         .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
@@ -153,9 +153,7 @@ class StatTile extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        deltaPositive
-                            ? Icons.trending_up
-                            : Icons.trending_down,
+                        deltaPositive ? Icons.trending_up : Icons.trending_down,
                         size: 14,
                         color: deltaPositive
                             ? AppColors.success
@@ -180,18 +178,20 @@ class StatTile extends StatelessWidget {
           SizedBox(height: large ? 16 : 12),
           Text(
             value,
-            style: (large
-                    ? theme.textTheme.displaySmall
-                    : theme.textTheme.headlineMedium)
-                ?.copyWith(color: AppColors.ink, height: 1),
+            style:
+                (large
+                        ? theme.textTheme.displaySmall
+                        : theme.textTheme.headlineMedium)
+                    ?.copyWith(color: AppColors.ink, height: 1),
           ),
           const SizedBox(height: 2),
           Text(label, style: theme.textTheme.labelMedium),
           if (caption != null)
             Text(
               caption!,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: AppColors.inkFaint),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: AppColors.inkFaint,
+              ),
             ),
         ],
       ),

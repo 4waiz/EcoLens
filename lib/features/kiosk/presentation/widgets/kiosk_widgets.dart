@@ -41,7 +41,10 @@ class KioskStatPill extends StatelessWidget {
             decoration: BoxDecoration(
               color: accentSurface,
               shape: BoxShape.circle,
-              border: Border.all(color: accent.withValues(alpha: 0.25), width: 2),
+              border: Border.all(
+                color: accent.withValues(alpha: 0.25),
+                width: 2,
+              ),
             ),
             child: Icon(icon, color: accent, size: 28),
           ),
@@ -322,8 +325,11 @@ class WasteCategoryButton extends StatelessWidget {
                 ),
                 if (state == WasteButtonState.correct) ...[
                   const SizedBox(height: 6),
-                  const Icon(Icons.check_circle,
-                      color: AppColors.success, size: 22),
+                  const Icon(
+                    Icons.check_circle,
+                    color: AppColors.success,
+                    size: 22,
+                  ),
                 ] else if (state == WasteButtonState.wrong) ...[
                   const SizedBox(height: 6),
                   const Icon(Icons.cancel, color: AppColors.error, size: 22),

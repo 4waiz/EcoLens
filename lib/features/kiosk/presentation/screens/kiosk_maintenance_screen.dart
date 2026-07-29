@@ -27,7 +27,9 @@ class KioskMaintenanceScreen extends ConsumerWidget {
               width: 110,
               height: 110,
               decoration: BoxDecoration(
-                color: isError ? AppColors.errorSurface : AppColors.warningSurface,
+                color: isError
+                    ? AppColors.errorSurface
+                    : AppColors.warningSurface,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -46,12 +48,12 @@ class KioskMaintenanceScreen extends ConsumerWidget {
             Text(
               isError
                   ? (session.errorMessage ??
-                      'This kiosk hit a snag. Please tell a teacher.')
+                        'This kiosk hit a snag. Please tell a teacher.')
                   : 'This EcoLens kiosk is being looked after. '
-                      'Please use another bin for now.',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: AppColors.inkMuted,
-                  ),
+                        'Please use another bin for now.',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: AppColors.inkMuted),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 28),

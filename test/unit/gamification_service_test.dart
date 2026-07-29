@@ -191,18 +191,21 @@ void main() {
       expect(broke, isFalse);
     });
 
-    test('missing several normal school days beyond grace breaks the streak', () {
-      final mon = DateTime(2026, 7, 6); // Monday
-      final fri = DateTime(2026, 7, 10); // Friday, missed Tue-Thu (3 days)
-      final broke = service.shouldBreakStreak(
-        lastActive: mon,
-        now: fri,
-        config: const GamificationConfig(streakGraceDays: 1),
-        isHoliday: never,
-        isApprovedAbsence: never,
-      );
-      expect(broke, isTrue);
-    });
+    test(
+      'missing several normal school days beyond grace breaks the streak',
+      () {
+        final mon = DateTime(2026, 7, 6); // Monday
+        final fri = DateTime(2026, 7, 10); // Friday, missed Tue-Thu (3 days)
+        final broke = service.shouldBreakStreak(
+          lastActive: mon,
+          now: fri,
+          config: const GamificationConfig(streakGraceDays: 1),
+          isHoliday: never,
+          isApprovedAbsence: never,
+        );
+        expect(broke, isTrue);
+      },
+    );
 
     test('an approved absence does not break the streak', () {
       final mon = DateTime(2026, 7, 6);
@@ -221,8 +224,10 @@ void main() {
   group('low-confidence routing', () {
     test('below-threshold predictions route to General Waste', () {
       final r = result(predicted: WasteCategory.plastic, confidence: 0.72);
-      expect(r.routedCategory(config.aiConfidenceThreshold),
-          WasteCategory.general);
+      expect(
+        r.routedCategory(config.aiConfidenceThreshold),
+        WasteCategory.general,
+      );
     });
 
     test('choosing General Waste on a low-confidence item is correct', () {
@@ -235,19 +240,25 @@ void main() {
       expect(correct, isTrue);
     });
 
-    test('choosing the predicted (but low-confidence) category is incorrect', () {
-      final r = result(predicted: WasteCategory.plastic, confidence: 0.72);
-      final correct = service.isSelectionCorrect(
-        result: r,
-        selected: WasteCategory.plastic,
-        config: config,
-      );
-      expect(correct, isFalse);
-    });
+    test(
+      'choosing the predicted (but low-confidence) category is incorrect',
+      () {
+        final r = result(predicted: WasteCategory.plastic, confidence: 0.72);
+        final correct = service.isSelectionCorrect(
+          result: r,
+          selected: WasteCategory.plastic,
+          config: config,
+        );
+        expect(correct, isFalse);
+      },
+    );
 
     test('high-confidence predictions route to the predicted category', () {
       final r = result(predicted: WasteCategory.paper, confidence: 0.95);
-      expect(r.routedCategory(config.aiConfidenceThreshold), WasteCategory.paper);
+      expect(
+        r.routedCategory(config.aiConfidenceThreshold),
+        WasteCategory.paper,
+      );
       expect(
         service.isSelectionCorrect(
           result: r,
@@ -264,8 +275,7 @@ void main() {
       expect(service.calculateAvatarLevel(0), 1);
       expect(service.calculateAvatarLevel(200) > 1, isTrue);
       expect(
-        service.calculateAvatarLevel(2000) >
-            service.calculateAvatarLevel(200),
+        service.calculateAvatarLevel(2000) > service.calculateAvatarLevel(200),
         isTrue,
       );
     });
