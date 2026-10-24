@@ -47,3 +47,12 @@ app.*.map.json
 # Full-resolution generated art masters. Processed, bundled copies live in
 # assets/ — regenerate them with `python tool/prepare_art_assets.py`.
 art_source/
+
+# Environment files and secrets: never commit real keys
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
